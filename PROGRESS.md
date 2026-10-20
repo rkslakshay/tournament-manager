@@ -11,6 +11,23 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 05:55: Task 1.4: Tiebreaker chain with recursive head-to-head
+
+- `rankTeams` in `src/engine/tiebreakers.ts` walks the configurable chain (`points`, `headToHead`, `goalDifference`, `goalsFor`, `wins`, `seed`, `alphabetical`). Each criterion splits a tied group into tiers.
+  - When `headToHead` splits a group, it is re-applied to each smaller tier using only that tier's matches (the recursive mini-table).
+  - Any tie left after the chain is broken by team id, so the order is always total.
+- `computeStandings` now uses `rankTeams`.
+- Assumption: `headToHead` compares the mini-table on points, then mini goal difference, then mini goals scored (UEFA-style), rather than points alone. With points alone, many realistic ties are never separated by head-to-head.
+- Tests: 9 new, 36 total.
+  - Two-way head-to-head beating goal difference.
+  - A 3-way cycle with identical scores falling through to overall goal difference.
+  - A 3-way tie separated by mini goal difference when overall goal difference disagrees.
+  - A 4-way tie that needs the recursive re-application. This case was found by a randomised search and pinned as a regression test.
+  - Seed and alphabetical fallbacks.
+  - Property tests: ranks form a permutation, the order is independent of input order, and points never increase down the table.
+- Coverage: engine at 100% lines, 94% branches.
+- Next task: 1.5 seeding.
+
 ## 2026-10-21 05:35: Task 1.3: Standings
 
 - `tallyStandings(teams, matches, config)` tallies played, W/D/L, goals for/against, difference and points (points per result are configurable). Only FINISHED matches with both scores count, so byes and live matches are ignored, as are matches against teams outside the table.

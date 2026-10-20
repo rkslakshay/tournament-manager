@@ -1,4 +1,5 @@
 import { hasResult } from "./match";
+import { rankTeams } from "./tiebreakers";
 import type { Match, StandingRow, StandingsConfig, Team, TeamId } from "./types";
 
 /** A standings row before it has a rank. */
@@ -30,7 +31,8 @@ export function tallyStandings(
 }
 
 /**
- * Compute a ranked league table. Standings are always derived from results, never stored.
+ * Compute a ranked league table, ordered by the configured tiebreaker chain (see `rankTeams`).
+ * Standings are always derived from results, never stored.
  *
  * @example
  * computeStandings(teams, matches, DEFAULT_STANDINGS_CONFIG)[0]?.teamId; // the leader
@@ -41,10 +43,7 @@ export function computeStandings(
   config: StandingsConfig,
 ): StandingRow[] {
   const tallies = tallyStandings(teams, matches, config);
-  const seedOf = new Map(teams.map((t) => [t.id, t.seed]));
-  const ordered = [...tallies.values()].sort(
-    (a, b) => b.points - a.points || (seedOf.get(a.teamId) ?? 0) - (seedOf.get(b.teamId) ?? 0),
-  );
+  const ordered = rankTeams(teams, tallies, matches, config).map((id) => tallies.get(id) as Tally);
   return ordered.map((row, i) => ({ ...row, rank: i + 1 }));
 }
 

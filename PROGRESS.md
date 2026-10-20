@@ -11,6 +11,15 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 06:05: Task 1.5: Seeding
+
+- `src/engine/seeding.ts`:
+  - `bracketSize(n)`: next power of two, minimum 2 teams.
+  - `seedBracket(size)`: standard order, built by doubling, e.g. 8 gives `[1,8,4,5,2,7,3,6]`.
+  - `firstRoundPairs(n)`: seed pairs with null byes, which always go to the highest seeds. The better seed is always the home slot, so a bye is always in the away slot.
+- Tests: 9 new, 45 total. Property tests check the order is a permutation, first-round pairs sum to size + 1, and the top 2^k seeds sit in distinct blocks of size/2^k, which implies seeds 1 and 2 can only meet in the final. Also checked: byes are exactly seeds 1..(size-n) and never two byes in one match.
+- Next task: 1.6 single elimination.
+
 ## 2026-10-21 05:55: Task 1.4: Tiebreaker chain with recursive head-to-head
 
 - `rankTeams` in `src/engine/tiebreakers.ts` walks the configurable chain (`points`, `headToHead`, `goalDifference`, `goalsFor`, `wins`, `seed`, `alphabetical`). Each criterion splits a tied group into tiers.

@@ -18,7 +18,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 - [x] 1.2 Round-robin generator (circle method, byes, legs, home/away balance) + property tests
 - [x] 1.3 Standings with points, diff, for/against + tests
 - [x] 1.4 Tiebreaker chain incl. head-to-head mini-table (recursive) + tests with tricky 3-way ties
-- [ ] 1.5 Seeding function + tests
+- [x] 1.5 Seeding function + tests
 - [ ] 1.6 Single-elimination generator with byes and optional third-place match + tests
 - [ ] 1.7 Propagation (resolve sources, report invalidated matches) + idempotence tests
 - [ ] 1.8 Group + knockout generator, group rank resolution + tests

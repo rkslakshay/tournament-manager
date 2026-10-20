@@ -5,7 +5,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 
 ## Phase 0: Setup
 - [x] 0.1 Scaffold Next.js (TypeScript strict, App Router, Tailwind), ESLint, Prettier
-- [ ] 0.2 Add Vitest, coverage config, fast-check; add npm scripts from CLAUDE.md
+- [x] 0.2 Add Vitest, coverage config, fast-check; add npm scripts from CLAUDE.md
 - [ ] 0.3 Prisma with SQLite; schema from ARCHITECTURE.md; initial migration
 - [ ] 0.4 GitHub Actions CI: lint, typecheck, test
 - [ ] 0.5 Create `PROGRESS.md` and `BLOCKERS.md`; write initial README

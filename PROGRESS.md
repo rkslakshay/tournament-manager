@@ -11,6 +11,14 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 04:20: Task 0.2: Vitest, coverage, fast-check
+- Added `vitest.config.ts` (node environment, `@/` alias via vite-tsconfig-paths). V8 coverage covers engine, server and lib code, and enforces a 90% threshold on `src/engine/**`, so Gate 1 is checked automatically by `npm run test:cov`.
+- Scripts: `test`, `test:watch`, `test:cov`. The `db:*` scripts come with Prisma in 0.3.
+- Added `.gitattributes` (`eol=lf`) to stop CRLF churn on Windows.
+- Tests: toolchain smoke test (fast-check property plus the path alias). 2 passing.
+- Dependencies: vitest, @vitest/coverage-v8, fast-check (TECHSTACK); vite-tsconfig-paths (one line, so tests resolve the same `@/` alias as Next).
+- Next task: 0.3 Prisma schema and initial migration.
+
 ## 2026-10-21 04:10: Task 0.1: Scaffold Next.js, ESLint, Prettier
 - Hand-scaffolded Next.js 15.5 (App Router, React 19, TypeScript strict + `noUncheckedIndexedAccess`) and Tailwind CSS v4 via `@tailwindcss/postcss`. `create-next-app` refuses non-empty directories, so the files were written directly.
 - ESLint 9 flat config extends `next/core-web-vitals` and `next/typescript`, plus `eslint-config-prettier`. Added an engine-purity rule: `src/engine/**` cannot import Next, React, Prisma, server code or Node I/O, and cannot call `Date.now` or `Math.random`.

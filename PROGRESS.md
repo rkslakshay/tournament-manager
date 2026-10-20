@@ -11,6 +11,21 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 07:05: Task 1.8: Group + knockout
+
+- `src/engine/group-knockout.ts`:
+  - `groupLabel`: A..Z, then AA and onwards.
+  - `assignGroups`: snake draft by seed.
+  - `generateGroupKnockout(teams, { groups, advancePerGroup, legs, thirdPlaceMatch, idPrefix })` returns `{ stages, groupOf }`: one GROUP stage per group (round robin, ids `g{A}-r{r}m{p}`) plus a SINGLE_ELIM stage whose round-one sources are `groupRank`.
+  - `resolveGroupRankings`: rankings only for fully finished groups, fed into `propagate({ groupRankings })`.
+- Added `roundRobinMatches` in `round-robin.ts`, which turns fixtures into SCHEDULED matches. It is shared with plain round-robin tournaments.
+- Knockout seeding:
+  - Group winners take seeds 1..g in group order. Each lower rank tier uses the first rotation of the group order that avoids same-group pairs in round one.
+  - With 2 groups this gives A1 vs B2 and B1 vs A2, as documented. It also works when g×k is not a power of two, in which case byes go to group winners.
+- Validation: at least 1 group, at least 2 teams per group, advancePerGroup between 1 and the smallest group size, and at least 2 qualifiers.
+- Tests: 11 new, 85 total. Property tests check that group sizes differ by at most 1 and top seeds are spread across groups, and that there is no same-group round-one pairing for 2-8 groups with 1-2 qualifiers each. An end-to-end test plays the groups and checks the knockout fills correctly.
+- Next task: 1.9 scheduler.
+
 ## 2026-10-21 06:45: Task 1.7: Propagation
 
 - `propagate(matches, { groupRankings })` returns `{ matches, invalidated }`. It walks the match DAG in topological order (Kahn's algorithm, stable, throws on unknown references or cycles) and resolves each source to a team, a bye or unknown.

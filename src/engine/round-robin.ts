@@ -1,5 +1,6 @@
+import { createMatch } from "./match";
 import { shuffle } from "./random";
-import type { Bye, Fixture, TeamId } from "./types";
+import type { Bye, Fixture, Match, MatchId, StageId, TeamId } from "./types";
 
 export interface RoundRobinOptions {
   /** 1 = everyone meets once, 2 = home and away. Default 1. */
@@ -55,6 +56,34 @@ export function generateRoundRobin(
     }
   }
   return { fixtures, byes, rounds: roundsPerLeg * legs };
+}
+
+/**
+ * Round-robin fixtures as SCHEDULED matches for one stage. Positions count from 1 within each
+ * round. Byes produce no match.
+ *
+ * @example
+ * roundRobinMatches(["a", "b", "c", "d"], {}, "rr", (r, p) => `rr-r${r}m${p}`).length; // 6
+ */
+export function roundRobinMatches(
+  teamIds: readonly TeamId[],
+  options: RoundRobinOptions,
+  stageId: StageId,
+  idFor: (round: number, position: number) => MatchId,
+): Match[] {
+  const perRound = new Map<number, number>();
+  return generateRoundRobin(teamIds, options).fixtures.map((f) => {
+    const position = (perRound.get(f.round) ?? 0) + 1;
+    perRound.set(f.round, position);
+    return createMatch({
+      id: idFor(f.round, position),
+      stageId,
+      round: f.round,
+      position,
+      homeTeamId: f.homeTeamId,
+      awayTeamId: f.awayTeamId,
+    });
+  });
 }
 
 /** Home/away pairs of round `r` (0-based) for an even number of slots. */

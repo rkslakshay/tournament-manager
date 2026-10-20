@@ -21,7 +21,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 - [x] 1.5 Seeding function + tests
 - [x] 1.6 Single-elimination generator with byes and optional third-place match + tests
 - [x] 1.7 Propagation (resolve sources, report invalidated matches) + idempotence tests
-- [ ] 1.8 Group + knockout generator, group rank resolution + tests
+- [x] 1.8 Group + knockout generator, group rank resolution + tests
 - [ ] 1.9 Scheduler (greedy, most-constrained-first, rest gaps, venue limits) + tests
 - [ ] 1.10 Double-elimination generator (losers routing, grand final, reset) + tests
 - **Gate 1**: engine coverage >= 90%, all property tests pass.

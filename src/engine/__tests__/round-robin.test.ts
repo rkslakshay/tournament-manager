@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import fc from "fast-check";
-import { generateRoundRobin } from "@/engine/round-robin";
+import { generateRoundRobin, roundRobinMatches } from "@/engine/round-robin";
 import type { Fixture } from "@/engine/types";
 
 const ids = (n: number) => Array.from({ length: n }, (_, i) => `t${i + 1}`);
@@ -156,5 +156,17 @@ describe("generateRoundRobin", () => {
         }),
       );
     });
+  });
+});
+
+describe("roundRobinMatches", () => {
+  it("turns fixtures into scheduled matches with per-round positions", () => {
+    const ms = roundRobinMatches(ids(5), { legs: 1 }, "rr", (r, p) => `rr-r${r}m${p}`);
+    expect(ms).toHaveLength(10);
+    expect(
+      ms.every((m) => m.stageId === "rr" && m.status === "SCHEDULED" && m.homeSource === null),
+    ).toBe(true);
+    expect(ms.filter((m) => m.round === 1).map((m) => m.id)).toEqual(["rr-r1m1", "rr-r1m2"]);
+    expect(new Set(ms.map((m) => m.id)).size).toBe(10);
   });
 });

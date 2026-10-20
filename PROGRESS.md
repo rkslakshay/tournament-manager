@@ -11,6 +11,18 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 05:20: Task 1.2: Round-robin generator
+
+- `generateRoundRobin(teamIds, { legs, seed })` returns `{ fixtures, byes, rounds }`.
+  - Circle method: the last slot is fixed and the rest rotate.
+  - Odd counts get a null bye slot. Pairings against it become `Bye` records.
+  - The second leg mirrors the first with home and away swapped.
+- Home/away orientation: the fixed slot alternates each round, and pair i is flipped when i is odd. This gives the minimum n-2 breaks: every team has at most 2 consecutive home or away games, and home/away counts differ by at most 1 per leg.
+- `src/engine/random.ts`: a mulberry32 PRNG plus a seeded Fisher-Yates `shuffle`, so the engine never uses `Math.random`.
+- Assumption: the architecture signature says `-> Fixture[]`. It returns `{ fixtures, byes, rounds }` instead, because the docs also require byes to be recorded.
+- Tests: 14 new, 21 total. Property tests cover every pair meeting `legs` times, no double booking (including byes), round counts, home/away balance and leg mirroring.
+- Next task: 1.3 standings.
+
 ## 2026-10-21 05:00: Task 1.1: Engine types
 
 - `src/engine/types.ts` defines Team, Match, Source (team, winner, loser, groupRank, bye), Fixture, Bye, Stage, StandingRow, StandingsConfig and Tiebreaker, plus `DEFAULT_TIEBREAKERS` and `DEFAULT_STANDINGS_CONFIG` (3/1/0 points).

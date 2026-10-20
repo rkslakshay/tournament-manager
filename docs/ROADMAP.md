@@ -15,7 +15,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 ## Phase 1: Engine (pure, test-first)
 
 - [x] 1.1 `types.ts`: Team, Match, Source, Fixture, StandingRow, configs
-- [ ] 1.2 Round-robin generator (circle method, byes, legs, home/away balance) + property tests
+- [x] 1.2 Round-robin generator (circle method, byes, legs, home/away balance) + property tests
 - [ ] 1.3 Standings with points, diff, for/against + tests
 - [ ] 1.4 Tiebreaker chain incl. head-to-head mini-table (recursive) + tests with tricky 3-way ties
 - [ ] 1.5 Seeding function + tests

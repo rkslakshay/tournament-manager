@@ -4,6 +4,7 @@ Work top to bottom. Mark `[x]` only when the task's tests pass and it is committ
 Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README accurate.
 
 ## Phase 0: Setup
+
 - [x] 0.1 Scaffold Next.js (TypeScript strict, App Router, Tailwind), ESLint, Prettier
 - [x] 0.2 Add Vitest, coverage config, fast-check; add npm scripts from CLAUDE.md
 - [x] 0.3 Prisma with SQLite; schema from ARCHITECTURE.md; initial migration
@@ -12,7 +13,8 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 - **Gate 0**: CI-equivalent commands pass locally.
 
 ## Phase 1: Engine (pure, test-first)
-- [ ] 1.1 `types.ts`: Team, Match, Source, Fixture, StandingRow, configs
+
+- [x] 1.1 `types.ts`: Team, Match, Source, Fixture, StandingRow, configs
 - [ ] 1.2 Round-robin generator (circle method, byes, legs, home/away balance) + property tests
 - [ ] 1.3 Standings with points, diff, for/against + tests
 - [ ] 1.4 Tiebreaker chain incl. head-to-head mini-table (recursive) + tests with tricky 3-way ties
@@ -25,6 +27,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 - **Gate 1**: engine coverage >= 90%, all property tests pass.
 
 ## Phase 2: Persistence and services
+
 - [ ] 2.1 DB client, repositories, test DB helper
 - [ ] 2.2 `createTournament` (slug generation, admin token hashing) + integration tests
 - [ ] 2.3 Team management with lifecycle validation
@@ -35,6 +38,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 - **Gate 2**: service integration tests pass, state-transition tests cover illegal moves.
 
 ## Phase 3: API
+
 - [ ] 3.1 zod schemas and error format
 - [ ] 3.2 Routes from DESIGN.md; admin auth middleware
 - [ ] 3.3 Rate limiting on writes
@@ -42,6 +46,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 - **Gate 3**: every route tested; no route lacks validation.
 
 ## Phase 4: UI
+
 - [ ] 4.1 Landing page and create wizard
 - [ ] 4.2 Admin: team management and seed reordering
 - [ ] 4.3 Admin: fixtures preview, start, result entry, edit with invalidation confirmation
@@ -51,12 +56,14 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 - **Gate 4**: manual walkthrough scripted in Playwright passes.
 
 ## Phase 5: Real-time
+
 - [ ] 5.1 SSE hub and `/events` endpoint
 - [ ] 5.2 Public page subscribes, refetches on event, polling fallback
 - [ ] 5.3 Live match status and "Live" indicators
 - **Gate 5**: e2e test shows a result entered in admin appears on public page without reload.
 
 ## Phase 6: Polish and ship
+
 - [ ] 6.1 Seed script with three demo tournaments
 - [ ] 6.2 Switch Prisma to PostgreSQL for production; document env vars
 - [ ] 6.3 Deployment config (Vercel + Neon) and deployment notes
@@ -65,6 +72,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 - **Gate 6**: fresh clone can run with documented steps only.
 
 ## Stretch (only after Phase 6)
+
 - [ ] S.1 Swiss system pairing
 - [ ] S.2 Redis pub/sub for multi-instance SSE
 - [ ] S.3 CSV export of standings and fixtures

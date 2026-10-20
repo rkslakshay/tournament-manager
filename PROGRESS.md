@@ -11,20 +11,32 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 05:00: Task 1.1: Engine types
+
+- `src/engine/types.ts` defines Team, Match, Source (team, winner, loser, groupRank, bye), Fixture, Bye, Stage, StandingRow, StandingsConfig and Tiebreaker, plus `DEFAULT_TIEBREAKERS` and `DEFAULT_STANDINGS_CONFIG` (3/1/0 points).
+- `src/engine/match.ts` adds small helpers: `createMatch`, `hasResult`, `isBye` and `loserOf`.
+- Decision (bye representation): byes need no extra column. A FINISHED match with exactly one team and no scores is a bye. A FINISHED match with no teams means "not needed" (a double bye in a losers bracket, or an unplayed grand-final reset). This keeps the DB schema and the engine model identical.
+- Tests: 7 passing. Removed the toolchain smoke test now that real engine tests exist.
+- Next task: 1.2 round-robin generator.
+
 ## 2026-10-21 04:45: Task 0.5: PROGRESS, BLOCKERS, initial README
+
 - PROGRESS.md and BLOCKERS.md already existed with their templates, so they were kept. Added README.md with an overview, setup steps, the script table and the project layout.
 
 ## 2026-10-21 04:45: Gate 0: passed
+
 - `npm run lint`, `npm run typecheck`, `npm test` and `npm run test:cov` all pass locally, as does `prisma migrate deploy` on a fresh database (the CI-equivalent sequence).
 - Next task: 1.1 engine types.
 
 ## 2026-10-21 04:40: Task 0.4: GitHub Actions CI
+
 - `.github/workflows/ci.yml` runs on every push and pull request: `npm ci` (its postinstall runs `prisma generate`), `prisma migrate deploy`, lint, typecheck and `test:cov`, which enforces the engine coverage threshold. Node 22 LTS on ubuntu-latest.
 - E2E (Playwright) joins CI in Phase 4, once there are flows to test.
 - Verified locally: the same commands pass. The workflow itself cannot run until the repo is pushed to GitHub.
 - Next task: 0.5 README, PROGRESS and BLOCKERS.
 
 ## 2026-10-21 04:35: Task 0.3: Prisma with SQLite, schema, initial migration
+
 - `prisma/schema.prisma` models Tournament, Team, Stage, Match and Venue as described in ARCHITECTURE.md. Initial migration is `prisma/migrations/*_init`.
 - Decisions:
   - Enum-like fields (status, stage type, bracket) are `String` columns validated in TypeScript, because Prisma enums are not portable to SQLite and the schema must later be mirrored for PostgreSQL.
@@ -38,6 +50,7 @@ Append newest entries at the top. Format:
 - Next task: 0.4 GitHub Actions CI.
 
 ## 2026-10-21 04:20: Task 0.2: Vitest, coverage, fast-check
+
 - Added `vitest.config.ts` (node environment, `@/` alias via vite-tsconfig-paths). V8 coverage covers engine, server and lib code, and enforces a 90% threshold on `src/engine/**`, so Gate 1 is checked automatically by `npm run test:cov`.
 - Scripts: `test`, `test:watch`, `test:cov`. The `db:*` scripts come with Prisma in 0.3.
 - Added `.gitattributes` (`eol=lf`) to stop CRLF churn on Windows.
@@ -46,10 +59,10 @@ Append newest entries at the top. Format:
 - Next task: 0.3 Prisma schema and initial migration.
 
 ## 2026-10-21 04:10: Task 0.1: Scaffold Next.js, ESLint, Prettier
+
 - Hand-scaffolded Next.js 15.5 (App Router, React 19, TypeScript strict + `noUncheckedIndexedAccess`) and Tailwind CSS v4 via `@tailwindcss/postcss`. `create-next-app` refuses non-empty directories, so the files were written directly.
 - ESLint 9 flat config extends `next/core-web-vitals` and `next/typescript`, plus `eslint-config-prettier`. Added an engine-purity rule: `src/engine/**` cannot import Next, React, Prisma, server code or Node I/O, and cannot call `Date.now` or `Math.random`.
 - Decision: Next 15 rather than 16, because it is stable and still ships `eslint-config-next` for flat config.
 - Tests: none yet (Vitest arrives in 0.2). `npm run lint`, `npm run typecheck` and `next build` pass.
 - Dependencies: next, react, react-dom, tailwindcss, @tailwindcss/postcss, eslint, eslint-config-next, @eslint/eslintrc (FlatCompat loader for the Next config), prettier, eslint-config-prettier (stops ESLint and Prettier fighting over formatting). All are in TECHSTACK or are standard Next tooling.
 - Next task: 0.2 Vitest + coverage + fast-check.
-

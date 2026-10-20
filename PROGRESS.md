@@ -11,6 +11,24 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 06:45: Task 1.7: Propagation
+
+- `propagate(matches, { groupRankings })` returns `{ matches, invalidated }`. It walks the match DAG in topological order (Kahn's algorithm, stable, throws on unknown references or cycles) and resolves each source to a team, a bye or unknown.
+- Rules:
+  - Bye versus a team: auto-FINISHED, and the team advances.
+  - Bye versus a bye: FINISHED with no teams, meaning the match is not needed.
+  - The loser of a bye is a bye. This is what makes double-elimination losers brackets work with odd counts.
+  - A grand-final reset (`GRAND_FINAL`, round 2) is not needed when GF1 is won by its home side, the winners-bracket champion.
+  - If participants change: an unplayed match is re-resolved. A match with a result, or one that is LIVE, is reset and listed in `invalidated`, and the reset cascades. The service applies RESET_DOWNSTREAM or BLOCK_EDIT.
+  - Matches without sources (round robin) are untouched.
+  - A knockout match finished as a draw with no winner advances nobody. The service layer rejects such results.
+- Decision: generators return the raw bracket and the service always runs `propagate` after generating and after every result, so there is only one place that resolves participants.
+- Tests: 19 new, 74 total.
+  - Property tests: idempotence at every step of randomly played brackets of 2-40 teams; seed 1 beats seed 2 in the final when favourites win, and every match finishes; input order is preserved.
+  - Unit tests cover edits, cascading invalidation, LIVE matches, byes and double byes, group ranks, the grand-final reset, cycles and unknown references.
+- Coverage: engine at 100% lines, 96.6% branches.
+- Next task: 1.8 group + knockout.
+
 ## 2026-10-21 06:20: Task 1.6: Single elimination
 
 - `generateSingleElimination(teams, { idPrefix, stageId, thirdPlaceMatch })` sorts teams by seed. `buildSingleElimination(entrantSources, ...)` takes any sources (used later for group qualifiers). `buildBracketRounds` is the shared tree builder that double elimination will reuse.

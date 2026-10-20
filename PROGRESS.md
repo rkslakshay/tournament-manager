@@ -11,6 +11,19 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 04:35: Task 0.3: Prisma with SQLite, schema, initial migration
+- `prisma/schema.prisma` models Tournament, Team, Stage, Match and Venue as described in ARCHITECTURE.md. Initial migration is `prisma/migrations/*_init`.
+- Decisions:
+  - Enum-like fields (status, stage type, bracket) are `String` columns validated in TypeScript, because Prisma enums are not portable to SQLite and the schema must later be mirrored for PostgreSQL.
+  - `config`, `homeSource` and `awaySource` use Prisma `Json` (supported on SQLite since Prisma 6.2).
+  - `Team.nameKey` (lower-cased name) has a unique index per tournament, so case-insensitive duplicates are rejected at the database level as well.
+  - `Match.version` was added now, not in 2.7, to avoid a second migration. Task 2.7 adds the behaviour.
+  - Stage and Match ids are supplied by the engine (prefixed per tournament) so source references (`winner of match X`) can be stored verbatim.
+  - Default tournament status is REGISTRATION. A tournament is created with its format already chosen in the wizard, so DRAFT is kept in the state machine but is not the default. Assumption, recorded here.
+- Scripts: `db:migrate`, `db:seed` (tsx `prisma/seed.ts`, a stub until 6.1), `db:generate`, and `postinstall: prisma generate`.
+- Dependencies: prisma and @prisma/client (TECHSTACK); tsx (runs the TypeScript seed script).
+- Next task: 0.4 GitHub Actions CI.
+
 ## 2026-10-21 04:20: Task 0.2: Vitest, coverage, fast-check
 - Added `vitest.config.ts` (node environment, `@/` alias via vite-tsconfig-paths). V8 coverage covers engine, server and lib code, and enforces a 90% threshold on `src/engine/**`, so Gate 1 is checked automatically by `npm run test:cov`.
 - Scripts: `test`, `test:watch`, `test:cov`. The `db:*` scripts come with Prisma in 0.3.

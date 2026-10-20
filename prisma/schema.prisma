@@ -1,0 +1,94 @@
+// Development schema (SQLite). The production PostgreSQL schema is generated from this file
+// (see docs/DEPLOYMENT.md once Phase 6 lands). Enum-like fields are plain strings validated
+// in TypeScript, because they must work identically on SQLite and PostgreSQL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Tournament {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  name           String
+  sport          String
+  /// DRAFT | REGISTRATION | IN_PROGRESS | COMPLETED | ARCHIVED
+  status         String   @default("REGISTRATION")
+  adminTokenHash String
+  /// TournamentConfig (format, points, tiebreakers, ...), validated with zod.
+  config         Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  teams  Team[]
+  stages Stage[]
+  venues Venue[]
+}
+
+model Team {
+  id           String     @id @default(cuid())
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  name         String
+  /// Lower-cased name, used to reject case-insensitive duplicates.
+  nameKey      String
+  seed         Int
+  groupLabel   String?
+
+  @@unique([tournamentId, nameKey])
+  @@index([tournamentId])
+}
+
+model Stage {
+  id           String     @id
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  order        Int
+  /// ROUND_ROBIN | SINGLE_ELIM | DOUBLE_ELIM | GROUP | SWISS
+  type         String
+  config       Json
+  matches      Match[]
+
+  @@index([tournamentId])
+}
+
+model Match {
+  id           String    @id
+  stageId      String
+  stage        Stage     @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  round        Int
+  position     Int
+  /// WINNERS | LOSERS | GRAND_FINAL, or null outside double elimination.
+  bracket      String?
+  homeTeamId   String?
+  awayTeamId   String?
+  /// Source JSON, e.g. {"type":"winner","matchId":"..."}
+  homeSource   Json?
+  awaySource   Json?
+  /// PENDING | SCHEDULED | LIVE | FINISHED
+  status       String    @default("PENDING")
+  homeScore    Int?
+  awayScore    Int?
+  winnerTeamId String?
+  scheduledAt  DateTime?
+  venueId      String?
+  venue        Venue?    @relation(fields: [venueId], references: [id], onDelete: SetNull)
+  /// Optimistic concurrency counter, bumped on every write.
+  version      Int       @default(0)
+
+  @@index([stageId])
+}
+
+model Venue {
+  id           String     @id @default(cuid())
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  name         String
+  matches      Match[]
+
+  @@index([tournamentId])
+}

@@ -11,6 +11,12 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 04:40: Task 0.4: GitHub Actions CI
+- `.github/workflows/ci.yml` runs on every push and pull request: `npm ci` (its postinstall runs `prisma generate`), `prisma migrate deploy`, lint, typecheck and `test:cov`, which enforces the engine coverage threshold. Node 22 LTS on ubuntu-latest.
+- E2E (Playwright) joins CI in Phase 4, once there are flows to test.
+- Verified locally: the same commands pass. The workflow itself cannot run until the repo is pushed to GitHub.
+- Next task: 0.5 README, PROGRESS and BLOCKERS.
+
 ## 2026-10-21 04:35: Task 0.3: Prisma with SQLite, schema, initial migration
 - `prisma/schema.prisma` models Tournament, Team, Stage, Match and Venue as described in ARCHITECTURE.md. Initial migration is `prisma/migrations/*_init`.
 - Decisions:

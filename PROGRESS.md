@@ -11,6 +11,17 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 06:20: Task 1.6: Single elimination
+
+- `generateSingleElimination(teams, { idPrefix, stageId, thirdPlaceMatch })` sorts teams by seed. `buildSingleElimination(entrantSources, ...)` takes any sources (used later for group qualifiers). `buildBracketRounds` is the shared tree builder that double elimination will reuse.
+- Match ids are `${prefix}r{round}m{position}`, and the third-place match is `${prefix}3rd` (same round as the final, position 2).
+  - Round one: team sources are resolved immediately, and a known team facing a bye gets a FINISHED match with itself as winner.
+  - Later rounds: PENDING with `winner` sources. `propagate` (1.7) fills them.
+- Assumption: `thirdPlaceMatch` is silently ignored when there are no semi-finals (2 teams), so a default-on UI option never causes an error.
+- Test fix: the "seeds 1 and 2 in opposite halves" property initially included n=2. With 2 teams the only match is the final, so "halves" do not exist. The property now starts at 3 teams; the 2-team case is covered by its own test.
+- Tests: 10 new, 55 total. Property tests check that the bracket is a valid tree for 2-70 teams: the match count, every feeder used once from the previous round, unique ids and all teams placed.
+- Next task: 1.7 propagation.
+
 ## 2026-10-21 06:05: Task 1.5: Seeding
 
 - `src/engine/seeding.ts`:

@@ -11,6 +11,13 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 04:45: Task 0.5: PROGRESS, BLOCKERS, initial README
+- PROGRESS.md and BLOCKERS.md already existed with their templates, so they were kept. Added README.md with an overview, setup steps, the script table and the project layout.
+
+## 2026-10-21 04:45: Gate 0: passed
+- `npm run lint`, `npm run typecheck`, `npm test` and `npm run test:cov` all pass locally, as does `prisma migrate deploy` on a fresh database (the CI-equivalent sequence).
+- Next task: 1.1 engine types.
+
 ## 2026-10-21 04:40: Task 0.4: GitHub Actions CI
 - `.github/workflows/ci.yml` runs on every push and pull request: `npm ci` (its postinstall runs `prisma generate`), `prisma migrate deploy`, lint, typecheck and `test:cov`, which enforces the engine coverage threshold. Node 22 LTS on ubuntu-latest.
 - E2E (Playwright) joins CI in Phase 4, once there are flows to test.

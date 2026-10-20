@@ -11,6 +11,13 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 05:35: Task 1.3: Standings
+
+- `tallyStandings(teams, matches, config)` tallies played, W/D/L, goals for/against, difference and points (points per result are configurable). Only FINISHED matches with both scores count, so byes and live matches are ignored, as are matches against teams outside the table.
+- `computeStandings` returns ranked `StandingRow[]`. For now it orders by points, then seed. Task 1.4 replaces this with the full tiebreaker chain.
+- Tests: 6 new, 27 total, including a property test that totals stay consistent (W = L overall, GF = GA, GD sums to 0, points = 3W + D).
+- Next task: 1.4 tiebreaker chain.
+
 ## 2026-10-21 05:20: Task 1.2: Round-robin generator
 
 - `generateRoundRobin(teamIds, { legs, seed })` returns `{ fixtures, byes, rounds }`.

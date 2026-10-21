@@ -11,6 +11,16 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 17:15: Task 5.2: Public page subscribes, refetches, polling fallback
+
+- `src/components/use-live-view.ts` (`useLiveView`) opens an `EventSource` on `/api/t/:slug/events`. On `match_updated` or `tournament_updated` it refetches the full public view, debounced 250 ms. It applies the full current state rather than patches, so a missed event can never leave the page wrong (DESIGN.md).
+  - It also refetches after a reconnect and when the tab becomes visible again.
+  - Fallback: if `EventSource` is unavailable, or SSE errors 3 times in a row without opening, it closes the stream and polls every 10 s (TECHSTACK.md).
+- The public page shows a small "Updates automatically" / "Refreshing every 10 s" note next to the status badge.
+- The admin page uses the same hook, so two organizers see each other's changes without reloading. Optimistic result entry still works through the hook's `setView`.
+- Verified in the browser: with the public page open, a result posted through the API appeared within about 1.5 s without a reload (a JS marker on `window` survived). The automated proof is Gate 5's E2E test (5.3).
+- Next task: 5.3 live match status and indicators.
+
 ## 2026-10-21 16:55: Task 5.1: SSE hub and /events endpoint
 
 - `src/server/events.ts`: an in-memory `eventHub` keyed by slug, with subscribe (returns unsubscribe), publish and `subscriberCount`. A listener that throws is isolated from the others. It is kept on `globalThis` so dev hot reloads don't orphan connections. Events are `match_updated { matchIds }` and `tournament_updated`.

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { StatusBadge } from "@/components/status-badge";
+import { useLiveView } from "@/components/use-live-view";
 import { apiFetch, ApiError } from "@/lib/api-client";
 import type { PublicView } from "@/lib/public-view";
 import { FORMAT_LABELS } from "@/lib/tournament-config";
@@ -33,7 +34,8 @@ export interface AdminActions {
 export function AdminApp({ initialView }: { initialView: PublicView }) {
   const slug = initialView.tournament.slug;
   const { token, forget } = useAdminToken(slug);
-  const [view, setView] = useState(initialView);
+  // Live too, so two organizers see each other's changes.
+  const { view, setView } = useLiveView(initialView);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ text: string; tone: "success" | "error" } | null>(null);
 
@@ -50,7 +52,7 @@ export function AdminApp({ initialView }: { initialView: PublicView }) {
 
   const refresh = useCallback(async () => {
     setView(await apiFetch<PublicView>(`/api/t/${slug}`));
-  }, [slug]);
+  }, [slug, setView]);
 
   const run = useCallback(
     async (write: () => Promise<unknown>, success: string) => {

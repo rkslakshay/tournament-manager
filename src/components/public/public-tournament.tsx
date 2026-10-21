@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CopyButton } from "@/components/copy-button";
 import { StatusBadge } from "@/components/status-badge";
 import { Tabs, type TabItem } from "@/components/ui/tabs";
+import { useLiveView, type LiveMode } from "@/components/use-live-view";
 import type { PublicView } from "@/lib/public-view";
 import { FORMAT_LABELS } from "@/lib/tournament-config";
 import { indexMatches, stageTitle, teamNamer } from "@/lib/view-model";
@@ -13,7 +14,7 @@ import { StandingsTable } from "./standings-table";
 
 /** The public, read-only tournament page. */
 export function PublicTournament({ initialView }: { initialView: PublicView }) {
-  const view = initialView;
+  const { view, mode } = useLiveView(initialView);
   const index = useMemo(() => indexMatches(view), [view]);
   const name = teamNamer(view);
   const leagueStages = view.stages.filter((s) => s.standings !== null);
@@ -74,8 +75,9 @@ export function PublicTournament({ initialView }: { initialView: PublicView }) {
             teams
           </p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight">{view.tournament.name}</h1>
-          <div className="mt-2">
+          <div className="mt-2 flex flex-wrap items-center gap-3">
             <StatusBadge status={view.tournament.status} />
+            <LiveIndicator mode={mode} />
           </div>
         </div>
         <ShareButton />
@@ -126,4 +128,19 @@ function ShareButton() {
   // Read after hydration so server and first client render match.
   useEffect(() => setUrl(window.location.href), []);
   return url ? <CopyButton text={url} label="Share" /> : null;
+}
+
+/** Tells viewers the page updates itself, and how. */
+function LiveIndicator({ mode }: { mode: LiveMode }) {
+  const text =
+    mode === "live"
+      ? "Updates automatically"
+      : mode === "polling"
+        ? "Refreshing every 10 s"
+        : "Connecting…";
+  return (
+    <span className="text-xs text-slate-500 dark:text-slate-400" data-live-mode={mode}>
+      {text}
+    </span>
+  );
 }

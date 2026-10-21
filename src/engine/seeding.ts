@@ -49,3 +49,15 @@ export function firstRoundPairs(teamCount: number): Array<[number, number | null
   }
   return pairs;
 }
+
+/**
+ * Teams strongest first: by seed, then by id so equal seeds still give one fixed order whatever
+ * the input order. Throws on duplicate team ids.
+ *
+ * @example
+ * orderBySeed([{ id: "b", seed: 2 }, { id: "a", seed: 1 }]).map((t) => t.id); // ["a", "b"]
+ */
+export function orderBySeed<T extends { id: string; seed: number }>(teams: readonly T[]): T[] {
+  if (new Set(teams.map((t) => t.id)).size !== teams.length) throw new Error("Duplicate team ids");
+  return [...teams].sort((a, b) => a.seed - b.seed || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+}

@@ -1,5 +1,5 @@
 import { roundRobinMatches } from "./round-robin";
-import { firstRoundPairs } from "./seeding";
+import { firstRoundPairs, orderBySeed } from "./seeding";
 import { buildSingleElimination } from "./single-elimination";
 import { computeStandings } from "./standings";
 import type { Source, Stage, StandingsConfig, Team, TeamId } from "./types";
@@ -41,14 +41,12 @@ export function groupLabel(index: number): string {
 export function assignGroups(teams: readonly Team[], groupCount: number): Record<string, Team[]> {
   const groups: Record<string, Team[]> = {};
   for (let g = 0; g < groupCount; g++) groups[groupLabel(g)] = [];
-  [...teams]
-    .sort((a, b) => a.seed - b.seed)
-    .forEach((team, i) => {
-      const row = Math.floor(i / groupCount);
-      const col = i % groupCount;
-      const g = row % 2 === 0 ? col : groupCount - 1 - col;
-      (groups[groupLabel(g)] as Team[]).push(team);
-    });
+  orderBySeed(teams).forEach((team, i) => {
+    const row = Math.floor(i / groupCount);
+    const col = i % groupCount;
+    const g = row % 2 === 0 ? col : groupCount - 1 - col;
+    (groups[groupLabel(g)] as Team[]).push(team);
+  });
   return groups;
 }
 

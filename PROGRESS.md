@@ -45,6 +45,22 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 21:00: Task 7.3: Skeptical engine review
+
+- New `src/engine/__tests__/edge-cases.test.ts` (24 tests) covers the gaps the existing suites didn't pin down:
+  - Round robin at 2, 3, 5, 17 and 128 teams (128 gives 127 rounds and 8,128 unique pairings).
+  - Single and double elimination played to completion at 2, 3, 5, 17 and 128 teams.
+  - Groups + knockout with 17 teams (uneven groups 5/4/4/4, advancers capped by the smallest group).
+  - The scheduler with zero slots.
+  - All-draw tables, a perfect 4-way cycle, and a 3-way cycle with no seed in the chain (alphabetical, then id).
+  - Deep double-elimination edits: flipping a round-one result after the entire bracket is played invalidates the winners and losers paths through to GF1; untouched results survive; GF2 returns to PENDING; replaying still eliminates everyone after two losses. Turning GF1 into an upset brings the "not needed" reset match back.
+- **Bugs found and fixed:**
+  1. **Duplicate team ids were accepted** by the single-elimination, double-elimination and groups + knockout generators (only the round robin checked). A bracket could contain the same team twice. They now throw.
+  2. **Duplicate seeds made brackets depend on input order.** The generators used a stable sort on seed alone, so two calls with the same teams in a different order produced different brackets. The service always assigns unique seeds, so this was latent, but the engine contract should be deterministic.
+  - Fix for both: new `orderBySeed` in `src/engine/seeding.ts` (seed, then id; rejects duplicate ids), used by every generator and `planStages`.
+- Tests: 25 new, 255 total. Engine coverage after the change is shown below.
+- Engine coverage after 7.3: lines 100 %, branches 97.16 %.
+
 ## 2026-10-21 20:40: Task 7.2: Secrets and junk audit
 
 - Checked:

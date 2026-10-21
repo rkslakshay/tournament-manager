@@ -1,5 +1,5 @@
 import { createMatch } from "./match";
-import { bracketSize } from "./seeding";
+import { bracketSize, orderBySeed } from "./seeding";
 import { buildBracketRounds } from "./single-elimination";
 import type { Match, MatchId, StageId, Team } from "./types";
 
@@ -39,7 +39,7 @@ export function generateDoubleElimination(
   const w = (r: number, p: number): MatchId => `${prefix}w${r}m${p}`;
   const l = (r: number, p: number): MatchId => `${prefix}l${r}m${p}`;
 
-  const bySeed = [...teams].sort((a, b) => a.seed - b.seed);
+  const bySeed = orderBySeed(teams);
   const matches = buildBracketRounds(
     bySeed.map((t) => ({ type: "team", teamId: t.id })),
     { stageId, bracket: "WINNERS", idFor: w },

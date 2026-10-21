@@ -1,6 +1,7 @@
 import { generateDoubleElimination } from "@/engine/double-elimination";
 import { generateGroupKnockout } from "@/engine/group-knockout";
 import { propagate } from "@/engine/propagation";
+import { orderBySeed } from "@/engine/seeding";
 import { roundRobinMatches } from "@/engine/round-robin";
 import { generateSingleElimination } from "@/engine/single-elimination";
 import type { Stage, Team, TeamId } from "@/engine/types";
@@ -25,7 +26,7 @@ export function planStages(
   teams: readonly Team[],
   idPrefix: string,
 ): StagePlan {
-  const bySeed = [...teams].sort((a, b) => a.seed - b.seed);
+  const bySeed = orderBySeed(teams);
   const plan = rawPlan(config, bySeed, idPrefix);
   const all = propagate(plan.stages.flatMap((s) => s.matches)).matches;
   const byId = new Map(all.map((m) => [m.id, m]));

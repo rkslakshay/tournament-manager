@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import fc from "fast-check";
-import { bracketSize, firstRoundPairs, seedBracket } from "@/engine/seeding";
+import { bracketSize, firstRoundPairs, orderBySeed, seedBracket } from "@/engine/seeding";
 
 const powers = fc.integer({ min: 0, max: 7 }).map((k) => 2 ** k);
 
@@ -84,5 +84,17 @@ describe("firstRoundPairs", () => {
         for (const [home] of pairs) expect(home).not.toBeNull();
       }),
     );
+  });
+});
+
+describe("orderBySeed", () => {
+  it("orders by seed, then id, and rejects duplicate ids", () => {
+    const teams = [
+      { id: "c", seed: 2 },
+      { id: "b", seed: 1 },
+      { id: "a", seed: 2 },
+    ];
+    expect(orderBySeed(teams).map((t) => t.id)).toEqual(["b", "a", "c"]);
+    expect(() => orderBySeed([...teams, { id: "a", seed: 9 }])).toThrow(/Duplicate/);
   });
 });

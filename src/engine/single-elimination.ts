@@ -1,5 +1,5 @@
 import { createMatch } from "./match";
-import { firstRoundPairs } from "./seeding";
+import { firstRoundPairs, orderBySeed } from "./seeding";
 import type { BracketSide, Match, MatchId, Source, StageId, Team } from "./types";
 
 export interface EliminationOptions {
@@ -26,7 +26,7 @@ export function generateSingleElimination(
   teams: readonly Team[],
   options: EliminationOptions = {},
 ): Match[] {
-  const bySeed = [...teams].sort((a, b) => a.seed - b.seed);
+  const bySeed = orderBySeed(teams);
   return buildSingleElimination(
     bySeed.map((t) => ({ type: "team", teamId: t.id })),
     options,

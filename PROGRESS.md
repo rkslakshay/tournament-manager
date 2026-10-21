@@ -45,6 +45,18 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-22 03:30: Task 7.12: README polish
+
+- README rewritten against the final code:
+  - one-paragraph pitch and the demo GIF;
+  - feature list (five formats, forfeits, extra time and penalties, live status, CSV, scheduler);
+  - screenshots and an architecture diagram (now showing the pub/sub hub with optional Redis);
+  - a tech stack table, getting started, a testing section and the other scripts;
+  - a full API table (result body now with `decidedBy`/`winnerTeamId`, plus the forfeit route);
+  - design decisions, an explicit **Known limitations** section and a roadmap.
+- Every number in it was measured just before writing: **42 test files, 304 tests; engine 99.9% lines, 96.3% branches; all code 97.6% lines; E2E 10/10.**
+- Links to `NEEDS_YOU.md` and `docs/CODE_TOUR.md` are created by 7.16 and 7.17 (checked at the end).
+
 ## 2026-10-22 03:10: Task 7.11: Demo GIF
 
 - `npm run demo-gif` (`scripts/record-demo.mjs`) records `docs/demo.gif` (11 frames, 289 KB, 1288×520):

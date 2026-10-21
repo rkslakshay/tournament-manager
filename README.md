@@ -46,7 +46,9 @@ tournament is created). Errors look like `{ "error": { "code", "message", "detai
 | PUT | `/api/t/:slug/teams/order` | admin | Reseed `{ teamIds: [] }` |
 | POST | `/api/t/:slug/start` | admin | Generate fixtures and lock teams |
 | PUT | `/api/t/:slug/matches/:matchId/result` | admin | Record/edit `{ homeScore, awayScore, expectedVersion?, confirmReset? }` |
+| PUT | `/api/t/:slug/matches/:matchId/status` | admin | Mark a match `LIVE` or back to `SCHEDULED` |
 | POST | `/api/t/:slug/schedule` | admin | Auto-schedule `{ venues, startTime, slotMinutes, minRestSlots }` |
+| GET | `/api/t/:slug/events` | none | Server-Sent Events: `match_updated`, `tournament_updated` |
 
 ## Project layout
 - `src/engine/`: pure tournament logic (fixtures, standings, brackets, scheduling). No I/O.

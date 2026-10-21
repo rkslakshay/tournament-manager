@@ -9,6 +9,7 @@ import { PUT as reorderRoute } from "@/app/api/t/[slug]/teams/order/route";
 import { POST as startRoute } from "@/app/api/t/[slug]/start/route";
 import { PUT as resultRoute } from "@/app/api/t/[slug]/matches/[matchId]/result/route";
 import { POST as scheduleRoute } from "@/app/api/t/[slug]/schedule/route";
+import { PUT as statusRoute } from "@/app/api/t/[slug]/matches/[matchId]/status/route";
 import type { PublicTeam, PublicView } from "@/lib/public-view";
 import type { TestDb } from "@/server/__tests__/test-db";
 import { ctx, request, useApiTestDb } from "./api-test-utils";
@@ -22,6 +23,7 @@ const TESTED_ROUTES = [
   "t/[slug]/teams/order/route.ts",
   "t/[slug]/start/route.ts",
   "t/[slug]/matches/[matchId]/result/route.ts",
+  "t/[slug]/matches/[matchId]/status/route.ts",
   "t/[slug]/schedule/route.ts",
   // Covered in events-route.test.ts.
   "t/[slug]/events/route.ts",
@@ -189,8 +191,9 @@ describe("admin authentication", () => {
         ctx({ slug, matchId: "x" }),
       ),
       scheduleRoute(request("POST", { body: {}, ip }), ctx({ slug })),
+      statusRoute(request("PUT", { body: { status: "LIVE" }, ip }), ctx({ slug, matchId: "x" })),
     ]);
-    expect(responses.map((r) => r.status)).toEqual([401, 401, 401, 401, 401]);
+    expect(responses.map((r) => r.status)).toEqual([401, 401, 401, 401, 401, 401]);
   });
 });
 
@@ -398,5 +401,45 @@ describe("POST /api/t/:slug/schedule", () => {
       code: "VALIDATION",
     });
     expect(await errorOf(await post(body))).toEqual({ status: 409, code: "INVALID_STATE" });
+  });
+});
+
+describe("PUT /api/t/:slug/matches/:matchId/status", () => {
+  it("marks a match live and shows it in the public view", async () => {
+    const { slug, adminToken, view } = await started(["A", "B"]);
+    const match = view.stages[0]!.matches[0]!;
+    const res = await statusRoute(
+      request("PUT", {
+        body: { status: "LIVE", expectedVersion: match.version },
+        token: adminToken,
+        ip,
+      }),
+      ctx({ slug, matchId: match.id }),
+    );
+    expect(await res.json()).toEqual({ status: "LIVE", version: match.version + 1 });
+    const after = (await (await getViewRoute(request("GET"), ctx({ slug }))).json()) as PublicView;
+    expect(after.stages[0]!.matches[0]!.status).toBe("LIVE");
+  });
+
+  it("validates the status and refuses finished matches", async () => {
+    const { slug, adminToken, view } = await started(["A", "B"]);
+    const match = view.stages[0]!.matches[0]!;
+    const put = (body: unknown) =>
+      statusRoute(
+        request("PUT", { body, token: adminToken, ip }),
+        ctx({ slug, matchId: match.id }),
+      );
+    expect(await errorOf(await put({ status: "FINISHED" }))).toEqual({
+      status: 400,
+      code: "VALIDATION",
+    });
+    await resultRoute(
+      request("PUT", { body: { homeScore: 1, awayScore: 0 }, token: adminToken, ip }),
+      ctx({ slug, matchId: match.id }),
+    );
+    expect(await errorOf(await put({ status: "LIVE" }))).toEqual({
+      status: 409,
+      code: "INVALID_STATE",
+    });
   });
 });

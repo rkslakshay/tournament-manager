@@ -7,9 +7,10 @@ import { Tabs, type TabItem } from "@/components/ui/tabs";
 import { useLiveView, type LiveMode } from "@/components/use-live-view";
 import type { PublicView } from "@/lib/public-view";
 import { FORMAT_LABELS } from "@/lib/tournament-config";
-import { indexMatches, stageTitle, teamNamer } from "@/lib/view-model";
+import { indexMatches, stageTitle, teamNamer, type MatchInfo } from "@/lib/view-model";
 import { Bracket } from "./bracket";
 import { FixturesList } from "./fixtures-list";
+import { MatchCard } from "./match-card";
 import { StandingsTable } from "./standings-table";
 
 /** The public, read-only tournament page. */
@@ -89,6 +90,8 @@ export function PublicTournament({ initialView }: { initialView: PublicView }) {
         </p>
       )}
 
+      <LiveNow view={view} index={index} />
+
       <div className="mt-6">
         {view.stages.length === 0 ? (
           <Upcoming view={view} />
@@ -142,5 +145,25 @@ function LiveIndicator({ mode }: { mode: LiveMode }) {
     <span className="text-xs text-slate-500 dark:text-slate-400" data-live-mode={mode}>
       {text}
     </span>
+  );
+}
+
+/** Matches being played right now, pinned above the tabs. */
+function LiveNow({ view, index }: { view: PublicView; index: Map<string, MatchInfo> }) {
+  const live = view.stages.flatMap((s) => s.matches).filter((m) => m.status === "LIVE");
+  if (live.length === 0) return null;
+  return (
+    <section aria-labelledby="live-now" className="mt-6">
+      <h2 id="live-now" className="mb-2 text-sm font-semibold">
+        Live now
+      </h2>
+      <ul className="grid gap-2 sm:grid-cols-2">
+        {live.map((match) => (
+          <li key={match.id}>
+            <MatchCard view={view} index={index} match={match} />
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

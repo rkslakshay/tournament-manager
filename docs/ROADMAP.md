@@ -59,7 +59,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 
 - [x] 5.1 SSE hub and `/events` endpoint
 - [x] 5.2 Public page subscribes, refetches on event, polling fallback
-- [ ] 5.3 Live match status and "Live" indicators
+- [x] 5.3 Live match status and "Live" indicators
 - **Gate 5**: e2e test shows a result entered in admin appears on public page without reload.
 
 ## Phase 6: Polish and ship

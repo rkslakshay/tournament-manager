@@ -31,6 +31,18 @@ export function ResultsPanel({ view, actions }: { view: PublicView; actions: Adm
   const [savingId, setSavingId] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingEdit | null>(null);
 
+  async function toggleLive(match: PublicMatch) {
+    const live = match.status === "LIVE";
+    await actions.run(
+      () =>
+        actions.api(`matches/${match.id}/status`, {
+          method: "PUT",
+          body: { status: live ? "SCHEDULED" : "LIVE", expectedVersion: match.version },
+        }),
+      live ? "Match is no longer live" : "Match is live",
+    );
+  }
+
   async function save(
     match: PublicMatch,
     homeScore: number,
@@ -103,6 +115,7 @@ export function ResultsPanel({ view, actions }: { view: PublicView; actions: Adm
                       stage={stage}
                       saving={savingId === match.id}
                       onSave={(h, a) => save(match, h, a)}
+                      onToggleLive={() => toggleLive(match)}
                     />
                   ))}
                 </ul>
@@ -152,9 +165,10 @@ interface RowProps {
   stage: PublicStage;
   saving: boolean;
   onSave: (homeScore: number, awayScore: number) => void;
+  onToggleLive: () => void;
 }
 
-function ResultRow({ view, index, info, stage, saving, onSave }: RowProps) {
+function ResultRow({ view, index, info, stage, saving, onSave, onToggleLive }: RowProps) {
   const { match } = info;
   const [home, setHome] = useState(match.homeScore?.toString() ?? "");
   const [away, setAway] = useState(match.awayScore?.toString() ?? "");
@@ -207,9 +221,27 @@ function ResultRow({ view, index, info, stage, saving, onSave }: RowProps) {
         className="grid grid-cols-[minmax(0,1fr)_auto_auto_auto_minmax(0,1fr)] items-center gap-x-2 gap-y-1 text-sm sm:grid-cols-[minmax(0,1fr)_auto_auto_auto_minmax(0,1fr)_auto]"
         aria-label={`${info.label}: ${homeName} vs ${awayName}`}
       >
-        <span className="col-span-full text-xs text-slate-500 dark:text-slate-400">
-          {info.label}
-        </span>
+        <div className="col-span-full flex items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <span>
+            {info.label}
+            {match.status === "LIVE" && (
+              <span className="ml-2 inline-flex items-center gap-1 font-semibold text-accent-700 dark:text-accent-500">
+                <span aria-hidden className="h-2 w-2 animate-pulse rounded-full bg-accent-600" />
+                Live
+              </span>
+            )}
+          </span>
+          {!done && (
+            <button
+              type="button"
+              onClick={onToggleLive}
+              disabled={saving}
+              className="rounded px-2 py-0.5 font-medium text-accent-700 hover:bg-accent-50 dark:text-accent-500 dark:hover:bg-slate-800"
+            >
+              {match.status === "LIVE" ? "End live" : "Mark live"}
+            </button>
+          )}
+        </div>
         <span
           className={`truncate text-right ${done && match.winnerTeamId === match.homeTeamId ? "font-bold" : ""}`}
         >

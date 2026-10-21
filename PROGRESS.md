@@ -11,6 +11,23 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 17:50: Gate 5: passed
+
+- `e2e/realtime.spec.ts` uses two isolated browser contexts, an organizer and a viewer.
+  - The viewer's page reaches live mode. "Mark live" in admin makes "Live now" appear for the viewer.
+  - Saving 2-1 in admin updates the viewer's derived league table (Rovers 3 pts) and shows "Champion: Rovers". A `window` marker proves the viewer never reloaded.
+- It passes on desktop and mobile; the full E2E suite is 8/8. Unit and integration tests: 225 passing; lint and typecheck clean.
+- Next task: 6.1 seed script with demo tournaments.
+
+## 2026-10-21 17:50: Task 5.3: Live match status and indicators
+
+- New service `setMatchStatus`: SCHEDULED ⇄ LIVE only (finished, pending and bye matches are refused), with the same `expectedVersion` check and version-guarded write as results, publishing `match_updated` after the commit. A LIVE match is finished by entering its result as usual.
+- New route `PUT /api/t/:slug/matches/:matchId/status` (admin, zod `matchStatusBody`). This is the one route beyond DESIGN.md's API list; task 5.3 needs a way to mark matches live. It has been added to the route inventory and API tests, and to the README.
+- UI:
+  - The admin result row has a "Mark live" / "End live" toggle and a pulsing "Live" label.
+  - The public page has a "Live now" section above the tabs. Match cards already show "Live" as text plus a dot, with an accent border.
+- Tests: 5 new, 225 total (service, route, auth guard).
+
 ## 2026-10-21 17:15: Task 5.2: Public page subscribes, refetches, polling fallback
 
 - `src/components/use-live-view.ts` (`useLiveView`) opens an `EventSource` on `/api/t/:slug/events`. On `match_updated` or `tournament_updated` it refetches the full public view, debounced 250 ms. It applies the full current state rather than patches, so a missed event can never leave the page wrong (DESIGN.md).

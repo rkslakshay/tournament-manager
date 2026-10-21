@@ -40,6 +40,12 @@ export const scheduleBody = z.object({
   minRestSlots: z.number().int().min(0).max(10).default(0),
 });
 
+/** Mark a match LIVE or back to SCHEDULED. Results are entered separately. */
+export const matchStatusBody = z.object({
+  status: z.enum(["SCHEDULED", "LIVE"]),
+  expectedVersion: z.number().int().min(0).optional(),
+});
+
 export type CreateTournamentBody = z.infer<typeof createTournamentBody>;
 export type ResultBody = z.infer<typeof resultBody>;
 export type ScheduleBody = z.infer<typeof scheduleBody>;
@@ -48,3 +54,4 @@ export type ScheduleBody = z.infer<typeof scheduleBody>;
 export interface ApiErrorBody {
   error: { code: string; message: string; details?: unknown };
 }
+export type MatchStatusBody = z.infer<typeof matchStatusBody>;

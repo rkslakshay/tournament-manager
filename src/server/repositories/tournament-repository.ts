@@ -125,7 +125,7 @@ export function toMatchCreateData(match: Match): Prisma.MatchCreateManyInput {
 }
 
 /** Prisma data for the result-related fields of an existing match. */
-export function toMatchResultData(match: Match): Prisma.MatchUpdateInput {
+export function toMatchResultData(match: Match): Prisma.MatchUpdateManyMutationInput {
   return {
     homeTeamId: match.homeTeamId,
     awayTeamId: match.awayTeamId,

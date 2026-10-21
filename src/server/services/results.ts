@@ -25,6 +25,11 @@ export const resultInputSchema = z.object({
   awayScore: score,
   /** Required to apply an edit that resets downstream matches (RESET_DOWNSTREAM policy). */
   confirmReset: z.boolean().optional(),
+  /**
+   * The match `version` the client last saw. When given and stale, the write is refused with
+   * VERSION_CONFLICT instead of silently overwriting another organizer's change.
+   */
+  expectedVersion: z.number().int().min(0).optional(),
 });
 
 export type ResultInput = z.infer<typeof resultInputSchema>;
@@ -67,7 +72,7 @@ export async function recordResult(
   const parsed = resultInputSchema.safeParse(input);
   if (!parsed.success)
     throw new ServiceError("VALIDATION", "Invalid score", parsed.error.flatten());
-  const { homeScore, awayScore, confirmReset } = parsed.data;
+  const { homeScore, awayScore, confirmReset, expectedVersion } = parsed.data;
 
   return db.$transaction(async (tx) => {
     const aggregate = await loadAggregate(tx, tournamentId);
@@ -81,6 +86,7 @@ export async function recordResult(
     const stage = aggregate.stages.find((s) => s.matches.some((m) => m.id === matchId));
     const match = stage?.matches.find((m) => m.id === matchId);
     if (!stage || !match) throw new ServiceError("NOT_FOUND", "Match not found");
+    assertCurrentVersion(match, expectedVersion);
     assertScorable(match);
     if (homeScore === awayScore && !isLeagueStageType(stage.type)) {
       throw new ServiceError("VALIDATION", "Knockout matches need a winner: draws are not allowed");
@@ -105,10 +111,12 @@ export async function recordResult(
     const previous = new Map(before.map((m) => [m.id, m]));
     const changed = after.filter((m) => resultChanged(previous.get(m.id) as StoredMatch, m));
     for (const m of changed) {
-      await tx.match.update({
-        where: { id: m.id },
+      // The version condition catches a concurrent write that landed after we loaded the match.
+      const { count } = await tx.match.updateMany({
+        where: { id: m.id, version: (previous.get(m.id) as StoredMatch).version },
         data: { ...toMatchResultData(m), version: { increment: 1 } },
       });
+      if (count === 0) throw versionConflict(m.id);
     }
     const status = await updateCompletion(tx, tournamentId, tournament.status, after);
     return { changedMatchIds: changed.map((m) => m.id), resetMatchIds: invalidated, status };
@@ -131,6 +139,20 @@ export async function editResult(
     throw new ServiceError("INVALID_STATE", "This match has no result to edit yet");
   }
   return recordResult(db, tournamentId, matchId, input);
+}
+
+function assertCurrentVersion(match: StoredMatch, expectedVersion: number | undefined): void {
+  if (expectedVersion !== undefined && expectedVersion !== match.version) {
+    throw versionConflict(match.id, match.version);
+  }
+}
+
+function versionConflict(matchId: MatchId, currentVersion?: number): ServiceError {
+  return new ServiceError(
+    "VERSION_CONFLICT",
+    "This match was changed by someone else. Reload to see the latest result.",
+    { matchId, currentVersion },
+  );
 }
 
 function assertScorable(match: Match): void {

@@ -11,6 +11,25 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 10:30: Gate 2: passed
+
+- All 155 tests pass, including the service integration tests against temporary SQLite databases. Lint and typecheck are clean.
+- State-transition coverage:
+  - The full transition table is asserted, including illegal moves (ARCHIVED→IN_PROGRESS, DRAFT→IN_PROGRESS).
+  - Starting twice or from DRAFT is refused.
+  - Team changes after the start are refused.
+  - Results are refused before the start, on pending matches and on byes.
+  - COMPLETED→IN_PROGRESS happens when an edit re-opens matches.
+- Coverage: overall 99.2% lines; engine 100% lines, 96% branches; services above 92%. `db.ts` is untested because tests inject their own client; it is covered by API and E2E tests later.
+- Next task: 3.1 zod schemas and error format.
+
+## 2026-10-21 10:30: Task 2.7: Optimistic concurrency via match version
+
+- `recordResult` / `editResult` accept `expectedVersion`. If it is stale, they throw VERSION_CONFLICT (409, "This match was changed by someone else. Reload to see the latest result.", `details: { matchId, currentVersion }`) and change nothing.
+- Every changed row is written with `updateMany where { id, version }`, so a concurrent write that lands between the read and the write also aborts the transaction with VERSION_CONFLICT. This applies even without `expectedVersion`.
+- Without `expectedVersion`, the behaviour is last-write-wins per match, as DESIGN.md describes.
+- Tests: 4 new, 155 total, including two simultaneous writers with the same version (exactly one wins).
+
 ## 2026-10-21 10:10: Task 2.6: getPublicView
 
 - `getPublicView(db, slug)` returns a `PublicView` (types in `src/lib/public-view.ts`, shared with the UI).

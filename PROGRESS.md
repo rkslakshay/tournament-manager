@@ -11,6 +11,19 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 13:20: Task 4.2: Admin team management and seed reordering
+
+- `/t/[slug]/admin` (server page, `noindex`) loads the view with `loadPublicView`, which is React-`cache`d per request and returns null for unknown slugs (404). It renders the client `AdminApp`.
+- `AdminApp`: header with status badge and public link, an aria-live notice area, and shared `AdminActions`. `api` calls admin endpoints with the bearer token. `run` performs a write, refreshes the view and reports success or the API error; on UNAUTHORIZED it forgets the stored token.
+- `useAdminToken`: moves `?token=` from the admin link into localStorage (per slug) and removes it from the address bar. Without a token, the page explains that the admin link is needed and links to the public page.
+  - Bug found in the browser and fixed: a raw `history.replaceState` in a child effect was undone by the App Router's own initial history entry, so the token reappeared. It now uses `router.replace`.
+- `TeamManager`: paste box (one per line; commas and tabs also split) with a live count. The seed list supports drag-and-drop plus keyboard-operable ↑/↓ buttons and remove buttons with descriptive aria-labels.
+- `StatusBadge`: Draft / Upcoming / Live / Completed / Archived as text, with a pulsing dot for Live, so meaning never depends on colour alone.
+- Pure helpers `parseTeamList` and `moveItem` in `src/lib/team-list.ts` are tested, including a permutation property.
+- Verified in the browser: adding 5 teams, moving a team up, removing a team (seeds close up), and the token moving out of the URL.
+- Tests: 3 new, 200 total.
+- Next task: 4.3 fixtures preview, start, result entry, edits.
+
 ## 2026-10-21 12:40: Task 4.1: Landing page and create wizard
 
 - Landing page (`/`): hero, "Create a tournament" CTA, feature list, and links to three demo tournaments. The slugs `demo-league`, `demo-cup` and `demo-world-cup` live in `src/lib/demo.ts`; the seed script (6.1) will create them.

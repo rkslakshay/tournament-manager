@@ -48,7 +48,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 ## Phase 4: UI
 
 - [x] 4.1 Landing page and create wizard
-- [ ] 4.2 Admin: team management and seed reordering
+- [x] 4.2 Admin: team management and seed reordering
 - [ ] 4.3 Admin: fixtures preview, start, result entry, edit with invalidation confirmation
 - [ ] 4.4 Public page: standings and fixtures tabs
 - [ ] 4.5 Bracket visualization component

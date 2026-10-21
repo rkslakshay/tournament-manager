@@ -11,6 +11,22 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 12:40: Task 4.1: Landing page and create wizard
+
+- Landing page (`/`): hero, "Create a tournament" CTA, feature list, and links to three demo tournaments. The slugs `demo-league`, `demo-cup` and `demo-world-cup` live in `src/lib/demo.ts`; the seed script (6.1) will create them.
+- Layout: header with brand and CTA, skip link, footer. One emerald accent colour defined as Tailwind `@theme` tokens. Dark mode follows the OS (`prefers-color-scheme`) and the global focus ring is visible.
+- Create wizard (`/new`) in three steps:
+  1. Basics: name, plus sport with datalist suggestions.
+  2. Format and rules: format radio cards with help text; per-format options (legs and points for league formats, groups and advancers, third place, grand-final reset); edit policy.
+  3. Review.
+  - The wizard validates per step with the shared zod schema, then shows the success panel with the copy prompt from DESIGN.md, the admin link and a copy button.
+- `src/lib/wizard.ts` (pure, tested) maps form state to a create request and keeps only the settings relevant to the chosen format. `src/lib/api-client.ts` (`apiFetch`, `ApiError`) is the typed client.
+- UI kit: small hand-written components in the shadcn style (`Button`, `Field` with label/hint/error ARIA wiring, `Card`, `CopyButton`). Decision: shadcn/ui is a copy-in pattern, so writing a handful of components avoids pulling in Radix, cva and the rest for the few controls this app needs.
+- Admin link format: `/t/{slug}/admin?token=…`, as in TECHSTACK.md. The admin page (4.2) moves the token into localStorage and strips it from the URL.
+- Verified in the browser: empty-field validation messages, step navigation, and creation through the real API reaching the success panel.
+- Tests: 4 new (wizard mapping), 197 total. Added `.claude/launch.json` for the dev server.
+- Next task: 4.2 admin team management.
+
 ## 2026-10-21 12:00: Gate 3: passed
 
 - Every route file under `src/app/api` is exercised for success, validation failure, auth failure and state conflicts. The inventory test fails if a new route file appears without being added to the suite (the SSE route is excluded until 5.1 adds its own tests).

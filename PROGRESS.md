@@ -45,6 +45,20 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 20:30: Task 7.1: Independent clean-state verification
+
+- Method: fresh `git clone` into a scratch directory, `npm ci` (463 packages, 31 s), `cp .env.example .env`, `prisma migrate deploy`, then every check. Nothing reused from the working copy.
+- Measured results:
+  - `npm run lint`: 0 problems.
+  - `npm run typecheck`: 0 errors.
+  - `npm run test:cov`: **34 test files, 230 tests, all passing**. Overall coverage 97.22% lines, 96.07% branches. **Engine: 100% lines, 97.11% branches**, 100% functions.
+  - `npx playwright test`: **8 passed** (4 scenarios × desktop and mobile) against an isolated production build.
+- `npm audit --omit=dev`: 5 advisories (1 moderate, 4 high), all in build/CLI tooling:
+  - `postcss` (bundled by `next`, used to compile our own CSS at build time);
+  - `deepmerge-ts` via `@prisma/config` (the Prisma CLI's config loader).
+  - Neither processes user input at runtime. The only offered fix is a forced major upgrade to Next 16; not taken now (logged as a known limitation).
+- These numbers match the Phase 6 summary.
+
 ## 2026-10-21 19:50: Task 6.5: docs/INTERVIEW_NOTES.md
 
 - Plain-language answers, each pointing at the backing code: architecture, byes (including double-elimination "ghost" byes), edited results (propagation, invalidation, policy, versions), derived standings and recursive head-to-head, live updates and how to scale them (Redis pub/sub, edge caching), the scheduler heuristic and why its tie-break exists, testing strategy, and next steps.

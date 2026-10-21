@@ -45,6 +45,14 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-22 05:20: Bug fix found by GitHub CI: scheduler was quadratic in the slot budget
+
+- The first CI runs on GitHub passed except one: the scheduler property "schedules everything when there is plenty of room" timed out (more than 5 s) under coverage on the GitHub runner.
+- Root cause: every iteration, `scheduleMatches` listed _all_ feasible (slot, venue) options for _every_ ready match. The service passes a generous slot budget (open matches × (rest + 1) + 1). Measured before the fix: 66 matches 79 ms, 190 matches 1.9 s, **a 32-team round robin (496 matches) 117 s**. Organizers would have seen the schedule request hang.
+- Fix: options are counted only up to 32 (`OPTIONS_COUNTED`). A match with that many choices is not constrained, and the earliest option is still found first, so the greedy order and every hard constraint are unchanged. Measured after: 14 ms / 93 ms / **976 ms** (about 120× faster for 496 matches).
+- Regression test added first, and it failed at about 89 s: "schedules a 32-team round robin (496 matches) quickly", with an explicit 20 s timeout (about 1 s locally, about 3.5 s under coverage) so slow runners don't flake while the old 2-minute behaviour still fails. The previously timing-out property now runs in about 0.3 s.
+- 305 tests passing; engine coverage 99.9% lines, 96.3% branches.
+
 ## 2026-10-22 04:50: Task 7.18: Interview notes expanded
 
 - `docs/INTERVIEW_NOTES.md` is now 30 questions in six sections (architecture and design, algorithms, state/concurrency/data, real-time and scaling, security, testing and quality), each with a concise answer pointing at code.

@@ -40,7 +40,8 @@ interface Candidate {
  *   `groupRank` source draws from), with the same rest gap.
  *
  * FINISHED and LIVE matches are not scheduled and count as already played. At each step, among
- * matches whose feeders are placed, the one with the fewest feasible options goes first (ties:
+ * matches whose feeders are placed, the one with the fewest feasible options (counted up to 32)
+ * goes first (ties:
  * busiest teams, then lower round, then input order) into its earliest option. Matches that do
  * not fit are reported, never dropped silently.
  *
@@ -123,6 +124,13 @@ function compareCandidates(a: Candidate, b: Candidate, load: Map<TeamId, number>
   );
 }
 
+/**
+ * Options are counted only up to this many: a match with this many choices is not constrained,
+ * and counting all of them for every ready match made large schedules quadratic in the slots.
+ */
+const OPTIONS_COUNTED = 32;
+
+/** Feasible (slot, venue) options in time order, at most `OPTIONS_COUNTED` of them. */
 function feasibleOptions(
   match: Match,
   earliest: number,
@@ -132,7 +140,7 @@ function feasibleOptions(
 ): Array<{ slot: number; venueId: string }> {
   const teams = teamsOf(match);
   const result: Array<{ slot: number; venueId: string }> = [];
-  for (let slot = earliest; slot < options.slots; slot++) {
+  for (let slot = earliest; slot < options.slots && result.length < OPTIONS_COUNTED; slot++) {
     const rested = teams.every((t) =>
       (teamSlots.get(t) ?? []).every((s) => Math.abs(s - slot) > options.minRestSlots),
     );

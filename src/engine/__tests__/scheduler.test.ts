@@ -169,6 +169,20 @@ describe("scheduleMatches", () => {
     );
   });
 
+  // Regression: counting every option for every ready match made this take about 2 minutes. It now
+  // takes about a second (a few under coverage); 20 s leaves headroom on slow CI runners.
+  it("schedules a 32-team round robin (496 matches) quickly", { timeout: 20_000 }, () => {
+    const ms = rr(32);
+    const { assignments, unscheduled } = scheduleMatches(ms, {
+      venues: ["v1", "v2", "v3", "v4"],
+      slots: ms.length * 2 + 1,
+      minRestSlots: 1,
+    });
+    expect(unscheduled).toEqual([]);
+    expect(assignments).toHaveLength(496);
+    assertValid(ms, assignments, 1);
+  });
+
   describe("properties", () => {
     const opts = fc.record({
       venues: fc

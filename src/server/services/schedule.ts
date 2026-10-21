@@ -2,6 +2,7 @@ import { scheduleMatches } from "@/engine/scheduler";
 import type { MatchId } from "@/engine/types";
 import type { ScheduleBody } from "@/lib/api-schemas";
 import type { Db } from "../db";
+import { eventHub } from "../events";
 import { assertStatus } from "../lifecycle";
 import { loadAggregate } from "../repositories/tournament-repository";
 
@@ -20,7 +21,7 @@ export async function scheduleTournament(
   tournamentId: string,
   input: ScheduleBody,
 ): Promise<ScheduleOutcome> {
-  return db.$transaction(async (tx) => {
+  const { slug, outcome } = await db.$transaction(async (tx) => {
     const aggregate = await loadAggregate(tx, tournamentId);
     assertStatus(
       aggregate.tournament.status,
@@ -62,6 +63,11 @@ export async function scheduleTournament(
       where: { id: { in: unscheduled } },
       data: { scheduledAt: null, venueId: null, version: { increment: 1 } },
     });
-    return { scheduled: assignments.length, unscheduled };
+    return {
+      slug: aggregate.tournament.slug,
+      outcome: { scheduled: assignments.length, unscheduled },
+    };
   });
+  eventHub.publish(slug, { type: "tournament_updated" });
+  return outcome;
 }

@@ -2,6 +2,7 @@ import { MIN_TEAMS } from "@/lib/tournament-config";
 import { planStages, type StagePlan } from "@/lib/plan-stages";
 import type { Db } from "../db";
 import { ServiceError } from "../errors";
+import { eventHub } from "../events";
 import { assertTransition } from "../lifecycle";
 import {
   loadAggregate,
@@ -15,7 +16,7 @@ import {
  * all in one transaction.
  */
 export async function startTournament(db: Db, tournamentId: string): Promise<TournamentAggregate> {
-  return db.$transaction(async (tx) => {
+  const started = await db.$transaction(async (tx) => {
     const { tournament, teams } = await loadAggregate(tx, tournamentId);
     assertTransition(tournament.status, "IN_PROGRESS");
     if (teams.length < MIN_TEAMS) {
@@ -41,6 +42,8 @@ export async function startTournament(db: Db, tournamentId: string): Promise<Tou
     await tx.tournament.update({ where: { id: tournamentId }, data: { status: "IN_PROGRESS" } });
     return loadAggregate(tx, tournamentId);
   });
+  eventHub.publish(started.tournament.slug, { type: "tournament_updated" });
+  return started;
 }
 
 /** Engine generators throw plain errors for impossible configurations; surface them as 400s. */

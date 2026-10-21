@@ -13,11 +13,13 @@ export async function makeTournament(
   options: { start?: boolean } = {},
 ) {
   const created = await createTournament(db, { name: "Fixture Cup", sport: "Football", config });
-  await addTeams(
-    db,
-    created.tournament.id,
-    Array.from({ length: teamCount }, (_, i) => `T${i + 1}`),
-  );
+  if (teamCount > 0) {
+    await addTeams(
+      db,
+      created.tournament.id,
+      Array.from({ length: teamCount }, (_, i) => `T${i + 1}`),
+    );
+  }
   if (options.start ?? true) await startTournament(db, created.tournament.id);
   return { id: created.tournament.id, slug: created.slug, adminToken: created.adminToken };
 }

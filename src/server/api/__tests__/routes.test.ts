@@ -23,6 +23,8 @@ const TESTED_ROUTES = [
   "t/[slug]/start/route.ts",
   "t/[slug]/matches/[matchId]/result/route.ts",
   "t/[slug]/schedule/route.ts",
+  // Covered in events-route.test.ts.
+  "t/[slug]/events/route.ts",
 ];
 
 let t: TestDb;
@@ -88,7 +90,7 @@ describe("route inventory", () => {
     const root = path.join(process.cwd(), "src", "app", "api");
     const found = (readdirSync(root, { recursive: true }) as string[])
       .map((f) => f.split(path.sep).join("/"))
-      .filter((f) => f.endsWith("route.ts") && !f.includes("/events/"));
+      .filter((f) => f.endsWith("route.ts"));
     expect(found.sort()).toEqual([...TESTED_ROUTES].sort());
   });
 });

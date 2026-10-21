@@ -3,6 +3,7 @@ import { teamName } from "@/lib/api-schemas";
 import { MAX_TEAMS } from "@/lib/tournament-config";
 import type { Db, Tx } from "../db";
 import { ServiceError } from "../errors";
+import { eventHub } from "../events";
 import { assertStatus, TEAM_EDITABLE } from "../lifecycle";
 import { toTeam, toTournamentRecord } from "../repositories/tournament-repository";
 
@@ -25,8 +26,7 @@ export async function addTeams(
   const newNames = cleaned.map((r) => r.data as string);
   if (newNames.length === 0) throw new ServiceError("VALIDATION", "Provide at least one team");
 
-  return db.$transaction(async (tx) => {
-    await loadEditable(tx, tournamentId);
+  return withTeamChange(db, tournamentId, async (tx) => {
     const existing = await tx.team.findMany({ where: { tournamentId }, orderBy: { seed: "asc" } });
     if (existing.length + newNames.length > MAX_TEAMS) {
       throw new ServiceError("VALIDATION", `A tournament can have at most ${MAX_TEAMS} teams`);
@@ -46,14 +46,12 @@ export async function addTeams(
         seed: nextSeed + i,
       })),
     });
-    return listTeams(tx, tournamentId);
   });
 }
 
 /** Remove a team before the start and close the gap in the seeds. */
 export async function removeTeam(db: Db, tournamentId: string, teamId: string): Promise<Team[]> {
-  return db.$transaction(async (tx) => {
-    await loadEditable(tx, tournamentId);
+  return withTeamChange(db, tournamentId, async (tx) => {
     const deleted = await tx.team.deleteMany({ where: { id: teamId, tournamentId } });
     if (deleted.count === 0) throw new ServiceError("NOT_FOUND", "Team not found");
     const remaining = await tx.team.findMany({ where: { tournamentId }, orderBy: { seed: "asc" } });
@@ -61,7 +59,6 @@ export async function removeTeam(db: Db, tournamentId: string, teamId: string): 
       tx,
       remaining.map((t) => t.id),
     );
-    return listTeams(tx, tournamentId);
   });
 }
 
@@ -71,8 +68,7 @@ export async function reorderTeams(
   tournamentId: string,
   teamIds: readonly string[],
 ): Promise<Team[]> {
-  return db.$transaction(async (tx) => {
-    await loadEditable(tx, tournamentId);
+  return withTeamChange(db, tournamentId, async (tx) => {
     const existing = await tx.team.findMany({ where: { tournamentId }, select: { id: true } });
     const known = new Set(existing.map((t) => t.id));
     const isPermutation =
@@ -83,7 +79,6 @@ export async function reorderTeams(
       throw new ServiceError("VALIDATION", "The new order must list every team exactly once");
     }
     await writeSeeds(tx, teamIds);
-    return listTeams(tx, tournamentId);
   });
 }
 
@@ -112,6 +107,24 @@ async function writeSeeds(tx: Tx, orderedIds: readonly string[]): Promise<void> 
   for (const [i, id] of orderedIds.entries()) {
     await tx.team.update({ where: { id }, data: { seed: i + 1 } });
   }
+}
+
+/**
+ * Run a team change in a transaction once the tournament is confirmed editable, then tell live
+ * viewers. Returns the teams by seed.
+ */
+async function withTeamChange(
+  db: Db,
+  tournamentId: string,
+  change: (tx: Tx) => Promise<void>,
+): Promise<Team[]> {
+  const { slug, teams } = await db.$transaction(async (tx) => {
+    const tournament = await loadEditable(tx, tournamentId);
+    await change(tx);
+    return { slug: tournament.slug, teams: await listTeams(tx, tournamentId) };
+  });
+  eventHub.publish(slug, { type: "tournament_updated" });
+  return teams;
 }
 
 async function loadEditable(tx: Tx, tournamentId: string) {

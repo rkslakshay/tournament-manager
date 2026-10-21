@@ -11,6 +11,19 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 16:55: Task 5.1: SSE hub and /events endpoint
+
+- `src/server/events.ts`: an in-memory `eventHub` keyed by slug, with subscribe (returns unsubscribe), publish and `subscriberCount`. A listener that throws is isolated from the others. It is kept on `globalThis` so dev hot reloads don't orphan connections. Events are `match_updated { matchIds }` and `tournament_updated`.
+- Services publish after their transaction commits, never inside it, so a rolled-back write never notifies anyone:
+  - `recordResult`/`editResult` publish `match_updated` with every changed match.
+  - `startTournament`, the team changes and `scheduleTournament` publish `tournament_updated`.
+  - Team writes now share a `withTeamChange` helper for this.
+- `GET /api/t/:slug/events` returns a `text/event-stream` with `retry: 3000`, one `event:`/`data:` frame per event, a 25 s comment heartbeat, and `no-cache, no-transform` plus `X-Accel-Buffering: no` so proxies don't buffer. It unsubscribes on client abort or stream cancel, and returns 404 for unknown slugs.
+- The route inventory test now includes the events route, which is covered in its own suite.
+- Test fix: the shared fixture `makeTournament` called `addTeams([])` for zero teams, which correctly fails validation. The fixture now skips the call; the service behaviour is unchanged.
+- Tests: 5 new, 220 total. Covered: hub delivery and isolation, the order of published events across a real flow (failed writes publish nothing), and the stream contents and unsubscription.
+- Next task: 5.2 public page subscribes and refetches.
+
 ## 2026-10-21 16:30: Gate 4: passed (Playwright walkthrough)
 
 - `e2e/walkthrough.spec.ts` runs on desktop Chrome and a Pixel 7 profile. All 6 pass.

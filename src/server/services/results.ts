@@ -10,6 +10,7 @@ import {
 } from "@/lib/tournament-config";
 import type { Db, Tx } from "../db";
 import { ServiceError } from "../errors";
+import { eventHub } from "../events";
 import { assertStatus } from "../lifecycle";
 import {
   loadAggregate,
@@ -42,6 +43,7 @@ const RESULT_STATES: readonly TournamentStatus[] = ["IN_PROGRESS", "COMPLETED"];
  *
  * Runs in one transaction: validate, apply the score, re-resolve every bracket slot with
  * `propagate` (group rankings included), then persist each changed match and bump its version.
+ * After the commit, live viewers are notified with a `match_updated` event.
  *
  * Edits that change the participants of matches that already have results follow the
  * tournament's edit policy. BLOCK_EDIT refuses them (EDIT_BLOCKED). RESET_DOWNSTREAM refuses
@@ -60,7 +62,7 @@ export async function recordResult(
     throw new ServiceError("VALIDATION", "Invalid score", parsed.error.flatten());
   const { homeScore, awayScore, confirmReset, expectedVersion } = parsed.data;
 
-  return db.$transaction(async (tx) => {
+  const { slug, outcome } = await db.$transaction(async (tx) => {
     const aggregate = await loadAggregate(tx, tournamentId);
     const { tournament } = aggregate;
     assertStatus(
@@ -105,8 +107,13 @@ export async function recordResult(
       if (count === 0) throw versionConflict(m.id);
     }
     const status = await updateCompletion(tx, tournamentId, tournament.status, after);
-    return { changedMatchIds: changed.map((m) => m.id), resetMatchIds: invalidated, status };
+    return {
+      slug: tournament.slug,
+      outcome: { changedMatchIds: changed.map((m) => m.id), resetMatchIds: invalidated, status },
+    };
   });
+  eventHub.publish(slug, { type: "match_updated", matchIds: outcome.changedMatchIds });
+  return outcome;
 }
 
 /**

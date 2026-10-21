@@ -45,6 +45,20 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-22 02:30: Task 7.10: Screenshots
+
+- `npm run screenshots` (`scripts/capture-screenshots.mjs`) regenerates `docs/screenshots/*.png` reproducibly:
+  - Setup: its own SQLite file, `prisma migrate deploy`, the real seed (admin links parsed in-process, never printed), a production build in `.next-e2e`, `next start` on port 3200.
+  - It adds a part-played 8-team double elimination through the public API, since no demo uses that format.
+  - Afterwards it kills the server and deletes the database.
+- Images (stable names, ~650 KB total): `home`, `standings` (groups, desktop), `bracket` (knockout, desktop), `double-elimination`, `swiss`, `mobile` (Pixel 7), `admin` (result entry), `dark-mode`. The README placeholder table is replaced with all eight.
+- **Bugs found by looking at the screenshots, and fixed:**
+  1. A Swiss "Live now" card was labelled **"Final"**: `shortMatchLabel` treated SWISS as a knockout, so round 4 of 4 became "Final". Fixed by treating SWISS like the league stages; a regression test was added first and failed before the fix.
+  2. Team names wrapped onto two lines in standings tables. The team cell is now `whitespace-nowrap`; the table still scrolls sideways on narrow screens.
+  3. A single league table took only half the page width. The two-column layout now applies only with several tables.
+  4. The landing page's "Every format" card omitted Swiss.
+- 304 tests passing; lint and typecheck clean.
+
 ## 2026-10-22 01:45: Task 7.9: CSV export
 
 - `src/lib/csv.ts` (pure):

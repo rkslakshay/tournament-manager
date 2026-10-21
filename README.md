@@ -7,9 +7,21 @@ and every tournament has a public page that updates live for players and fans.
 **Live demo:** _deploy link goes here_ (see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)). Locally, run
 `npm run db:seed` and open `/t/demo-league`, `/t/demo-cup` or `/t/demo-world-cup`.
 
-| Public standings                             | Bracket                                    | Organizer result entry                   |
-| -------------------------------------------- | ------------------------------------------ | ---------------------------------------- |
-| _screenshot: docs/screenshots/standings.png_ | _screenshot: docs/screenshots/bracket.png_ | _screenshot: docs/screenshots/admin.png_ |
+![Group standings with qualification places](docs/screenshots/standings.png)
+
+| Knockout bracket                                  | Double elimination                                                     |
+| ------------------------------------------------- | ---------------------------------------------------------------------- |
+| ![Knockout bracket](docs/screenshots/bracket.png) | ![Double-elimination bracket](docs/screenshots/double-elimination.png) |
+
+| Organizer result entry                            | Swiss standings with Buchholz                  |
+| ------------------------------------------------- | ---------------------------------------------- |
+| ![Admin result entry](docs/screenshots/admin.png) | ![Swiss standings](docs/screenshots/swiss.png) |
+
+| Mobile public page                                 | Dark mode                                            |
+| -------------------------------------------------- | ---------------------------------------------------- |
+| ![Mobile public page](docs/screenshots/mobile.png) | ![Dark mode bracket](docs/screenshots/dark-mode.png) |
+
+Screenshots are generated from the seeded demo data with `npm run screenshots`.
 
 ## Features
 

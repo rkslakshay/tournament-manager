@@ -36,7 +36,7 @@ export function PublicTournament({ initialView }: { initialView: PublicView }) {
               build={() => standingsCsv(view)}
             />
           </div>
-          <div className="grid gap-6 xl:grid-cols-2">
+          <div className={`grid gap-6 ${leagueStages.length > 1 ? "xl:grid-cols-2" : ""}`}>
             {leagueStages.map((stage) => (
               <StandingsTable
                 key={stage.id}

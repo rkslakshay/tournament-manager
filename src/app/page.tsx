@@ -5,7 +5,7 @@ import { FORMAT_LABELS, FORMATS } from "@/lib/tournament-config";
 const FEATURES = [
   {
     title: "Every format",
-    text: "Round robin, single and double elimination, and groups + knockout.",
+    text: "Round robin, single and double elimination, groups + knockout, and Swiss.",
   },
   {
     title: "Fair by design",

@@ -22,7 +22,8 @@
     "db:pg:generate": "prisma generate --schema prisma/postgres/schema.prisma",
     "db:pg:deploy": "prisma migrate deploy --schema prisma/postgres/schema.prisma",
     "build:prod": "npm run db:pg:generate && npm run db:pg:deploy && next build",
-    "test:pg": "node scripts/test-postgres.mjs"
+    "test:pg": "node scripts/test-postgres.mjs",
+    "screenshots": "node scripts/capture-screenshots.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

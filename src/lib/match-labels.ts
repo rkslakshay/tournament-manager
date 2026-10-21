@@ -43,7 +43,7 @@ export function shortMatchLabel(
   if (match.bracket === "GRAND_FINAL") return match.round === 1 ? "GF" : "GF reset";
   if (match.bracket === "WINNERS") return `WB R${match.round} M${match.position}`;
   if (match.bracket === "LOSERS") return `LB R${match.round} M${match.position}`;
-  if (stageType === "ROUND_ROBIN" || stageType === "GROUP")
+  if (stageType === "ROUND_ROBIN" || stageType === "GROUP" || stageType === "SWISS")
     return `R${match.round} M${match.position}`;
   const short = ["F", "SF", "QF"][lastRound - match.round];
   return short

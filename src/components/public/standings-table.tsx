@@ -85,7 +85,7 @@ export function StandingsTable({ title, rows, teamName, qualifyingPlaces }: Prop
                     {row.rank}
                   </span>
                 </td>
-                <th scope="row" className="px-3 py-2 text-left font-medium">
+                <th scope="row" className="whitespace-nowrap px-3 py-2 text-left font-medium">
                   {teamName(row.teamId)}
                   {qualifies && (
                     <span className="ml-2 text-xs font-semibold text-accent-700 dark:text-accent-500">

@@ -44,6 +44,9 @@ describe("shortMatchLabel", () => {
     expect(shortMatchLabel("DOUBLE_ELIM", m(4, 1, "LOSERS"), 3)).toBe("LB R4 M1");
     expect(shortMatchLabel("DOUBLE_ELIM", m(2, 1, "GRAND_FINAL"), 3)).toBe("GF reset");
     expect(shortMatchLabel("GROUP", m(2, 3), 3)).toBe("R2 M3");
+    // Swiss rounds are never "Final" or "SF", even the last ones.
+    expect(shortMatchLabel("SWISS", m(4, 3), 4)).toBe("R4 M3");
+    expect(shortMatchLabel("SWISS", m(3, 1), 4)).toBe("R3 M1");
   });
 
   it("only treats position 2 of a knockout final round as the third-place match", () => {

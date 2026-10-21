@@ -17,7 +17,11 @@
     "db:seed": "prisma db seed",
     "db:generate": "prisma generate",
     "postinstall": "prisma generate",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "db:pg:schema": "node scripts/postgres-schema.mjs",
+    "db:pg:generate": "prisma generate --schema prisma/postgres/schema.prisma",
+    "db:pg:deploy": "prisma migrate deploy --schema prisma/postgres/schema.prisma",
+    "build:prod": "npm run db:pg:generate && npm run db:pg:deploy && next build"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

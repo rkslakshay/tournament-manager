@@ -65,7 +65,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 ## Phase 6: Polish and ship
 
 - [x] 6.1 Seed script with three demo tournaments
-- [ ] 6.2 Switch Prisma to PostgreSQL for production; document env vars
+- [x] 6.2 Switch Prisma to PostgreSQL for production; document env vars
 - [ ] 6.3 Deployment config (Vercel + Neon) and deployment notes
 - [ ] 6.4 README: screenshots placeholders, architecture diagram (mermaid), feature list, how to run, design decisions, what I'd improve
 - [ ] 6.5 Add `docs/INTERVIEW_NOTES.md`: answers to the likely questions (byes, edited results, derived standings, scaling viewers) in plain language

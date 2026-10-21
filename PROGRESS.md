@@ -11,6 +11,18 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 18:55: Task 6.2: PostgreSQL for production, env vars documented
+
+- Prisma cannot switch providers by environment variable, so production uses a generated schema.
+  - `scripts/postgres-schema.mjs` (`npm run db:pg:schema`) writes `prisma/postgres/schema.prisma`: same models, `postgresql` provider, plus `directUrl = env("DIRECT_URL")` because Neon's pooled connection cannot run migrations.
+  - Its migrations live in `prisma/postgres/migrations/`. The init migration was generated offline with `prisma migrate diff --from-empty --to-schema-datamodel` (no database needed).
+- New scripts: `db:pg:schema`, `db:pg:generate`, `db:pg:deploy`, and `build:prod` (generate the Postgres client, apply migrations, `next build`).
+- Drift guard: `postgres-schema.test.ts` fails if the generated schema is stale or the migration lacks a table for any model.
+- Env vars documented in `.env.example`: `DATABASE_URL` (SQLite in dev, pooled Postgres in prod), `DIRECT_URL`, `NEXT_PUBLIC_SITE_URL`, and both rate limits.
+- Not verified against a live PostgreSQL server (none available here); logged in BLOCKERS.md with exact verification steps. The schema passes `prisma validate`.
+- Tests: 3 new, 230 total.
+- Next task: 6.3 deployment config (Vercel + Neon).
+
 ## 2026-10-21 18:30: Task 6.1: Seed script with three demo tournaments
 
 - `src/server/seed.ts` (`seedDemo(db)`) builds the demo tournaments linked from the landing page through the real services, so propagation, standings and versions are exactly what users get:

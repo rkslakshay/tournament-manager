@@ -1,6 +1,6 @@
-// Development schema (SQLite). The production PostgreSQL schema is generated from this file
-// (see docs/DEPLOYMENT.md once Phase 6 lands). Enum-like fields are plain strings validated
-// in TypeScript, because they must work identically on SQLite and PostgreSQL.
+// Development schema (SQLite). The production PostgreSQL schema in prisma/postgres/ is
+// generated from this file by `npm run db:pg:schema` (see docs/DEPLOYMENT.md). Enum-like fields
+// are plain strings validated in TypeScript, so they work identically on both databases.
 
 generator client {
   provider = "prisma-client-js"

@@ -36,6 +36,9 @@ export interface PublicView {
   championTeamId: TeamId | null;
 }
 
+/** A table row; Swiss tables also carry Buchholz. */
+export type PublicStandingRow = StandingRow & { buchholz?: number };
+
 export interface PublicTeam {
   id: TeamId;
   name: string;
@@ -49,7 +52,7 @@ export interface PublicStage {
   type: StageType;
   groupLabel: string | null;
   /** League table for ROUND_ROBIN and GROUP stages, derived from results; null otherwise. */
-  standings: StandingRow[] | null;
+  standings: PublicStandingRow[] | null;
   matches: PublicMatch[];
 }
 
@@ -87,7 +90,7 @@ export function championOf(
 ): TeamId | null {
   const last = [...stages].sort((a, b) => b.order - a.order)[0];
   if (!last) return null;
-  if (last.type === "ROUND_ROBIN") {
+  if (last.type === "ROUND_ROBIN" || last.type === "SWISS") {
     return status === "COMPLETED" ? (last.standings?.[0]?.teamId ?? null) : null;
   }
   if (last.type === "DOUBLE_ELIM") {

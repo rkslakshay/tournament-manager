@@ -26,6 +26,8 @@ export function stageTitle(stage: PublicStage): string {
       return `Group ${stage.groupLabel ?? ""}`.trim();
     case "ROUND_ROBIN":
       return "League";
+    case "SWISS":
+      return "Swiss standings";
     case "DOUBLE_ELIM":
       return "Bracket";
     default:

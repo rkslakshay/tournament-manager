@@ -14,6 +14,8 @@ export interface WizardForm {
   grandFinalReset: boolean;
   groups: number;
   advancePerGroup: number;
+  /** Swiss rounds; NaN means "decide from the team count at start". */
+  swissRounds: number;
   editPolicy: EditPolicy;
 }
 
@@ -29,6 +31,7 @@ export const DEFAULT_WIZARD_FORM: WizardForm = {
   grandFinalReset: true,
   groups: 2,
   advancePerGroup: 2,
+  swissRounds: Number.NaN,
   editPolicy: "RESET_DOWNSTREAM",
 };
 
@@ -54,8 +57,13 @@ export function defaultWalkoverScore(sport: string): { winner: number; loser: nu
     : { winner: 3, loser: 0 };
 }
 
-/** Formats with league tables, which use points and legs. */
+/** Formats with league tables, which use points. */
 export function usesLeagueRules(format: Format): boolean {
+  return format === "ROUND_ROBIN" || format === "GROUP_KNOCKOUT" || format === "SWISS";
+}
+
+/** Formats where every pairing can be played over one or two legs. */
+export function usesLegs(format: Format): boolean {
   return format === "ROUND_ROBIN" || format === "GROUP_KNOCKOUT";
 }
 
@@ -78,8 +86,10 @@ export function buildCreateRequest(
       format: form.format,
       editPolicy: form.editPolicy,
       walkoverScore: defaultWalkoverScore(form.sport),
+      ...(usesLegs(form.format) && { legs: form.legs }),
+      ...(form.format === "SWISS" &&
+        Number.isFinite(form.swissRounds) && { swissRounds: form.swissRounds }),
       ...(league && {
-        legs: form.legs,
         pointsForWin: form.pointsForWin,
         pointsForDraw: form.pointsForDraw,
         pointsForLoss: form.pointsForLoss,

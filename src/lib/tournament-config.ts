@@ -1,7 +1,13 @@
 import { z } from "zod";
 import type { StandingsConfig } from "@/engine/types";
 
-export const FORMATS = ["ROUND_ROBIN", "SINGLE_ELIM", "DOUBLE_ELIM", "GROUP_KNOCKOUT"] as const;
+export const FORMATS = [
+  "ROUND_ROBIN",
+  "SINGLE_ELIM",
+  "DOUBLE_ELIM",
+  "GROUP_KNOCKOUT",
+  "SWISS",
+] as const;
 export type Format = (typeof FORMATS)[number];
 
 export const FORMAT_LABELS: Record<Format, string> = {
@@ -9,6 +15,7 @@ export const FORMAT_LABELS: Record<Format, string> = {
   SINGLE_ELIM: "Single elimination",
   DOUBLE_ELIM: "Double elimination",
   GROUP_KNOCKOUT: "Groups + knockout",
+  SWISS: "Swiss system",
 };
 
 export const TIEBREAKERS = [
@@ -55,6 +62,8 @@ export const tournamentConfigSchema = z
     grandFinalReset: z.boolean().default(true),
     groups: z.number().int().min(1).max(32).optional(),
     advancePerGroup: z.number().int().min(1).max(8).optional(),
+    /** Swiss only: number of rounds. Default (at start) ceil(log2 teams). */
+    swissRounds: z.number().int().min(1).max(127).optional(),
     editPolicy: z.enum(EDIT_POLICIES).default("RESET_DOWNSTREAM"),
     /** Score awarded when a team forfeits a match (winner–loser). */
     walkoverScore: z
@@ -89,7 +98,7 @@ export function standingsConfigOf(config: TournamentConfig): StandingsConfig {
   };
 }
 
-/** True for formats that produce league tables (and therefore allow draws). */
+/** True for stages that produce league tables (and therefore allow draws). */
 export function isLeagueStageType(stageType: string): boolean {
-  return stageType === "ROUND_ROBIN" || stageType === "GROUP";
+  return stageType === "ROUND_ROBIN" || stageType === "GROUP" || stageType === "SWISS";
 }

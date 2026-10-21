@@ -61,7 +61,7 @@ export default function HomePage() {
         <h2 id="demos" className="text-xl font-bold">
           Demo tournaments
         </h2>
-        <ul className="mt-4 grid gap-3 sm:grid-cols-3">
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {DEMO_TOURNAMENTS.map((demo) => (
             <li key={demo.slug}>
               <Link

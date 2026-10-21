@@ -20,8 +20,10 @@ import type { Db, Tx } from "../db";
 import { ServiceError } from "../errors";
 import { eventHub } from "../events";
 import { assertStatus } from "../lifecycle";
+import { nextSwissRound } from "./swiss-rounds";
 import {
   loadAggregate,
+  toMatchCreateData,
   toMatchResultData,
   type StoredMatch,
   type StoredStage,
@@ -72,7 +74,8 @@ interface ApplyOptions {
  * tournament's edit policy. BLOCK_EDIT refuses them (EDIT_BLOCKED). RESET_DOWNSTREAM refuses
  * with CONFIRMATION_REQUIRED (listing the affected matches) unless `confirmReset` is set, in
  * which case those results are cleared. The tournament becomes COMPLETED when every match is
- * finished, and returns to IN_PROGRESS if an edit re-opens matches.
+ * finished, and returns to IN_PROGRESS if an edit re-opens matches. In a Swiss event, completing
+ * a round pairs the next one in the same transaction.
  */
 export async function recordResult(
   db: Db,
@@ -190,10 +193,19 @@ async function applyResult(
       });
       if (count === 0) throw versionConflict(m.id);
     }
-    const status = await updateCompletion(tx, tournamentId, tournament.status, after);
+    const nextRound = nextSwissRound(aggregate, after);
+    if (nextRound.length > 0) await tx.match.createMany({ data: nextRound.map(toMatchCreateData) });
+    const status = await updateCompletion(tx, tournamentId, tournament.status, [
+      ...after,
+      ...nextRound,
+    ]);
     return {
       slug: tournament.slug,
-      outcome: { changedMatchIds: changed.map((m) => m.id), resetMatchIds: invalidated, status },
+      outcome: {
+        changedMatchIds: [...changed, ...nextRound].map((m) => m.id),
+        resetMatchIds: invalidated,
+        status,
+      },
     };
   });
   eventHub.publish(slug, { type: "match_updated", matchIds: outcome.changedMatchIds });

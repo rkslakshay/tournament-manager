@@ -13,9 +13,9 @@ and every tournament has a public page that updates live for players and fans.
 
 ## Features
 
-- **Four formats**: round robin (one or two legs), single elimination (optional third-place
-  match), double elimination (losers bracket, grand final with optional reset), and groups +
-  knockout.
+- **Five formats**: round robin (one or two legs), single elimination (optional third-place
+  match), double elimination (losers bracket, grand final with optional reset), groups +
+  knockout, and Swiss (score-group pairing without rematches, byes, Buchholz tiebreak).
 - **Fair draws**: standard bracket seeding, byes for the top seeds, snake-drafted groups,
   cross-group knockout pairings (A1 v B2), and round robins with balanced home/away runs.
 - **Standings that are never stored**: always derived from results, with a configurable tiebreaker

@@ -1,8 +1,8 @@
-import type { StandingRow } from "@/engine/types";
+import type { PublicStandingRow } from "@/lib/public-view";
 
 interface Props {
   title: string;
-  rows: StandingRow[];
+  rows: PublicStandingRow[];
   teamName: (teamId: string) => string;
   /** Rows ranked at or above this qualify for the next stage (highlighted). 0 = none. */
   qualifyingPlaces: number;
@@ -10,7 +10,7 @@ interface Props {
 
 /** Columns marked `wide` are hidden on phones so points stay visible without scrolling. */
 const COLUMNS: ReadonlyArray<{
-  key: keyof StandingRow;
+  key: "played" | "won" | "drawn" | "lost" | "goalsFor" | "goalsAgainst" | "goalDifference";
   short: string;
   long: string;
   wide?: boolean;
@@ -26,6 +26,7 @@ const COLUMNS: ReadonlyArray<{
 
 /** League table with a sticky header; qualification places are marked by text and colour. */
 export function StandingsTable({ title, rows, teamName, qualifyingPlaces }: Props) {
+  const withBuchholz = rows.some((r) => r.buchholz !== undefined);
   return (
     <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
       <table className="w-full text-sm">
@@ -53,6 +54,13 @@ export function StandingsTable({ title, rows, teamName, qualifyingPlaces }: Prop
                 </abbr>
               </th>
             ))}
+            {withBuchholz && (
+              <th scope="col" className="w-12 px-2 py-2 text-right">
+                <abbr title="Buchholz: sum of opponents' points" className="no-underline">
+                  BH
+                </abbr>
+              </th>
+            )}
             <th scope="col" className="w-12 px-3 py-2 text-right">
               <abbr title="Points" className="no-underline">
                 Pts
@@ -96,6 +104,9 @@ export function StandingsTable({ title, rows, teamName, qualifyingPlaces }: Prop
                       : row[c.key]}
                   </td>
                 ))}
+                {withBuchholz && (
+                  <td className="px-2 py-2 text-right tabular-nums">{row.buchholz}</td>
+                )}
                 <td className="px-3 py-2 text-right font-bold tabular-nums">{row.points}</td>
               </tr>
             );

@@ -73,7 +73,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 
 ## Stretch (only after Phase 6)
 
-- [ ] S.1 Swiss system pairing
+- [x] S.1 Swiss system pairing (done as task 7.7)
 - [ ] S.2 Redis pub/sub for multi-instance SSE
 - [ ] S.3 CSV export of standings and fixtures
 - [ ] S.4 User accounts and "my tournaments"
@@ -94,7 +94,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 
 ### 7C. Stretch features
 
-- [ ] 7.7 Swiss system (pairing, no rematches, byes, Buchholz) with service, UI and demo
+- [x] 7.7 Swiss system (pairing, no rematches, byes, Buchholz) with service, UI and demo
 - [ ] 7.8 Pub/sub adapter: in-memory and Redis (REDIS_URL), contract tests
 - [ ] 7.9 CSV export of standings and fixtures
 

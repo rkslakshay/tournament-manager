@@ -53,6 +53,14 @@ describe("seedDemo", () => {
       expect(knockout.filter((m) => m.round === 2).every((m) => m.status === "SCHEDULED")).toBe(
         true,
       );
+      const swiss = await getPublicView(t.db, "demo-swiss");
+      expect(swiss.tournament.format).toBe("SWISS");
+      const swissMatches = swiss.stages[0]!.matches;
+      expect(swissMatches.filter((m) => m.homeScore !== null)).toHaveLength(15);
+      expect(Math.max(...swissMatches.map((m) => m.round))).toBe(4);
+      expect(swissMatches.filter((m) => m.status === "LIVE")).toHaveLength(1);
+      expect(swiss.stages[0]!.standings!.every((r) => r.buchholz !== undefined)).toBe(true);
+
       expect(
         world.stages
           .flatMap((s) => s.matches)

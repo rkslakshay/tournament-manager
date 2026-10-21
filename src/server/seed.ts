@@ -1,6 +1,6 @@
 import { createRng } from "@/engine/random";
 import { DEMO_TOURNAMENTS } from "@/lib/demo";
-import type { TournamentConfigInput } from "@/lib/tournament-config";
+import { isLeagueStageType, type TournamentConfigInput } from "@/lib/tournament-config";
 import type { Db } from "./db";
 import { loadAggregate } from "./repositories/tournament-repository";
 import { setMatchStatus } from "./services/match-status";
@@ -68,6 +68,15 @@ const SPECS: DemoSpec[] = [
     teams: CLUBS.slice(0, 16),
     playMatches: 28,
     oneLive: false,
+  },
+  {
+    slug: DEMO_TOURNAMENTS[3].slug,
+    name: "Autumn Rapid Open",
+    sport: "Chess",
+    config: { format: "SWISS", swissRounds: 4 },
+    teams: CLUBS.slice(0, 10),
+    playMatches: 15,
+    oneLive: true,
   },
 ];
 
@@ -140,7 +149,7 @@ async function nextOpenMatch(
         id: m.id,
         at: m.scheduledAt?.getTime() ?? Number.MAX_SAFE_INTEGER,
         round: m.round,
-        allowsDraws: stage.type === "ROUND_ROBIN" || stage.type === "GROUP",
+        allowsDraws: isLeagueStageType(stage.type),
       })),
   );
   // League stages first, then knockout rounds in order, each by kick-off time.

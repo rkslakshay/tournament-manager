@@ -1,3 +1,4 @@
+import { defaultSwissRounds } from "@/engine/swiss";
 import { MIN_TEAMS } from "@/lib/tournament-config";
 import { planStages, type StagePlan } from "@/lib/plan-stages";
 import type { Db } from "../db";
@@ -13,7 +14,8 @@ import {
 /**
  * Generate fixtures and lock the teams: runs the generator for the configured format,
  * persists stages and matches, stores group labels and moves the tournament to IN_PROGRESS,
- * all in one transaction.
+ * all in one transaction. Swiss events get round 1 now and their round count fixed; later
+ * rounds are paired as results come in (see `recordResult`).
  */
 export async function startTournament(db: Db, tournamentId: string): Promise<TournamentAggregate> {
   const started = await db.$transaction(async (tx) => {
@@ -21,6 +23,21 @@ export async function startTournament(db: Db, tournamentId: string): Promise<Tou
     assertTransition(tournament.status, "IN_PROGRESS");
     if (teams.length < MIN_TEAMS) {
       throw new ServiceError("VALIDATION", `At least ${MIN_TEAMS} teams are needed to start`);
+    }
+
+    if (tournament.config.format === "SWISS") {
+      const rounds = tournament.config.swissRounds ?? defaultSwissRounds(teams.length);
+      if (rounds > teams.length - 1) {
+        throw new ServiceError(
+          "VALIDATION",
+          `A Swiss event with ${teams.length} teams can have at most ${teams.length - 1} rounds`,
+        );
+      }
+      // Fix the round count now, so later pairing knows when the event ends.
+      await tx.tournament.update({
+        where: { id: tournamentId },
+        data: { config: { ...tournament.config, swissRounds: rounds } },
+      });
     }
 
     const plan = generatePlan(() => planStages(tournament.config, teams, `${tournament.id}-`));

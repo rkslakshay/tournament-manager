@@ -45,6 +45,23 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-22 00:30: Task 7.7: Swiss system
+
+- Engine `src/engine/swiss.ts` (pure, written test-first):
+  - `defaultSwissRounds(n)`: ceil(log2 n), capped at n-1.
+  - `swissStandings`: a bye counts as a win. Order is points, then **Buchholz** (sum of opponents' points; byes add nothing), then goal difference, goals scored, seed, id.
+  - `pairSwissRound`: Monrad-style pairing of neighbours in the current ranking, so teams meet others on similar scores. A depth-first search with backtracking (200k-step budget) avoids every rematch; otherwise it falls back to the fewest rematches and reports them rather than failing. Odd counts give the bye to the lowest-ranked team without one. Home goes to the team with fewer home games.
+  - Assumption: Monrad (adjacent pairing) instead of FIDE Dutch top-half-vs-bottom-half pairing. It is simpler to prove correct, still pairs within score groups, and is a recognised Swiss variant. Logged as a known limitation.
+- Service integration:
+  - New `SWISS` format with optional `swissRounds`. The start service fixes the round count (default as above; more than n-1 is rejected) and plans round 1.
+  - `applyResult` pairs the next round in the same transaction when the latest round completes (new `services/swiss-rounds.ts`). New match ids appear in `changedMatchIds`, so live viewers refresh.
+  - The tournament completes after the last round. Editing an earlier result recomputes standings but never re-pairs.
+- Public view: Swiss standings carry `buchholz`; the table shows a "BH" column (with an `<abbr>` explanation); the champion is the standings leader once completed. Stage title "Swiss standings". Draws are allowed (league rules).
+- Wizard: Swiss option with an optional rounds field (empty means automatic). Legs are hidden for Swiss and the review text is correct.
+- Demo: fourth seeded tournament `demo-swiss` ("Autumn Rapid Open", 10 players, 4 rounds, 3 played, one game live), linked from the landing page.
+- Docs: ARCHITECTURE.md §3.9, README features. Stretch S.1 checked off.
+- Tests: `swiss.test.ts` (11, including property tests over 2-24 teams: one game per team per round, no rematch, at most one bye each, deterministic pairing whatever the input order), `swiss-service.test.ts` (5), seed assertions. **288 passing.** `swiss.ts` coverage 99.4% lines, 91% branches; engine overall 99.9% lines, 96.3% branches.
+
 ## 2026-10-21 23:20: Task 7.6: Knockout draws via extra time or penalties
 
 - `resultBody` gains optional `decidedBy` (`REGULAR | EXTRA_TIME | PENALTIES`) and `winnerTeamId`. With neither field, behaviour is exactly as before (knockout draws rejected, league draws allowed).

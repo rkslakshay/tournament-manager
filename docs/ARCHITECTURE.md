@@ -125,6 +125,21 @@ Venue      { id, tournamentId, name }
 - Matches must respect dependency order (a round cannot be scheduled before its feeders).
 - Greedy algorithm with "most constrained match first" ordering; report unscheduled matches rather than failing silently.
 
+### 3.9 swiss
+
+`pairSwissRound(teams, previousMatches, config, { round, stageId, idPrefix }) -> { matches, rematches }`
+
+- Rounds are paired one at a time from the standings so far (Monrad style): rank by points, then
+  Buchholz, then seed; pair neighbours, so teams meet others on similar scores.
+- Depth-first search with backtracking avoids every repeat meeting. If none is possible, fall back
+  to the fewest rematches and report them (never fail).
+- Odd count: the lowest-ranked team without a bye sits out and gets a win.
+- `swissStandings`: points (a bye counts as a win), then Buchholz (sum of opponents' points), goal
+  difference, goals scored, seed and id.
+- The service pairs round 1 at start and each next round in the same transaction that completes
+  the previous one, up to `swissRounds` (default ceil(log2 n)). Pairings already made are never
+  redone when an earlier result is edited.
+
 ## 4. Services layer
 
 - `createTournament`, `addTeam`, `removeTeam`, `reseed`

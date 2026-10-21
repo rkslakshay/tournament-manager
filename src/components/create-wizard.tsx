@@ -14,6 +14,7 @@ import {
   defaultWalkoverScore,
   DEFAULT_WIZARD_FORM,
   usesLeagueRules,
+  usesLegs,
   type WizardForm,
 } from "@/lib/wizard";
 
@@ -34,6 +35,7 @@ const FORMAT_HELP: Record<Format, string> = {
   SINGLE_ELIM: "Lose once and you are out. Fast, with byes for top seeds.",
   DOUBLE_ELIM: "Teams are out after two losses, with a losers bracket and grand final.",
   GROUP_KNOCKOUT: "Round-robin groups first, then the best teams play a knockout.",
+  SWISS: "A few rounds where teams on similar scores meet. Nobody is knocked out; ideal for chess.",
 };
 
 export function CreateWizard() {
@@ -187,19 +189,30 @@ export function CreateWizard() {
 
             {usesLeagueRules(form.format) && (
               <>
-                <Field label="Legs" hint="Two legs means home and away.">
-                  {(id, describedBy) => (
-                    <Select
-                      id={id}
-                      aria-describedby={describedBy}
-                      value={form.legs}
-                      onChange={(e) => update("legs", Number(e.target.value) as 1 | 2)}
-                    >
-                      <option value={1}>Single (play each team once)</option>
-                      <option value={2}>Double (home and away)</option>
-                    </Select>
-                  )}
-                </Field>
+                {usesLegs(form.format) && (
+                  <Field label="Legs" hint="Two legs means home and away.">
+                    {(id, describedBy) => (
+                      <Select
+                        id={id}
+                        aria-describedby={describedBy}
+                        value={form.legs}
+                        onChange={(e) => update("legs", Number(e.target.value) as 1 | 2)}
+                      >
+                        <option value={1}>Single (play each team once)</option>
+                        <option value={2}>Double (home and away)</option>
+                      </Select>
+                    )}
+                  </Field>
+                )}
+                {form.format === "SWISS" && (
+                  <NumberField
+                    label="Rounds (leave empty for automatic)"
+                    value={form.swissRounds}
+                    min={1}
+                    max={127}
+                    onChange={(v) => update("swissRounds", v)}
+                  />
+                )}
                 <fieldset>
                   <legend className="mb-2 text-sm font-medium">Points</legend>
                   <div className="grid grid-cols-3 gap-3">
@@ -285,7 +298,12 @@ export function CreateWizard() {
                 <dt className="text-slate-500">Points</dt>
                 <dd>
                   {form.pointsForWin} / {form.pointsForDraw} / {form.pointsForLoss} (win / draw /
-                  loss), {form.legs === 2 ? "home and away" : "single leg"}
+                  loss)
+                  {usesLegs(form.format) && (form.legs === 2 ? ", home and away" : ", single leg")}
+                  {form.format === "SWISS" &&
+                    (Number.isFinite(form.swissRounds)
+                      ? `, ${form.swissRounds} rounds`
+                      : ", rounds chosen from the team count")}
                 </dd>
               </>
             )}

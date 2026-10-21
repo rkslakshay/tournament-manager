@@ -1,4 +1,5 @@
 import { computeStandings } from "@/engine/standings";
+import { swissStandings } from "@/engine/swiss";
 import { championOf, type PublicMatch, type PublicStage, type PublicView } from "@/lib/public-view";
 import { isLeagueStageType, standingsConfigOf } from "@/lib/tournament-config";
 import type { Tx } from "../db";
@@ -74,9 +75,11 @@ function toPublicStage(stage: StoredStage, aggregate: TournamentAggregate): Publ
     order: stage.order,
     type: stage.type,
     groupLabel: stage.groupLabel,
-    standings: isLeagueStageType(stage.type)
-      ? computeStandings(members, stage.matches, standingsConfigOf(aggregate.tournament.config))
-      : null,
+    standings: !isLeagueStageType(stage.type)
+      ? null
+      : stage.type === "SWISS"
+        ? swissStandings(members, stage.matches, standingsConfigOf(aggregate.tournament.config))
+        : computeStandings(members, stage.matches, standingsConfigOf(aggregate.tournament.config)),
     matches: stage.matches.map(toPublicMatch),
   };
 }

@@ -7,4 +7,9 @@ export const DEMO_TOURNAMENTS = [
     label: "16-team groups + knockout",
     description: "Four groups, then a bracket",
   },
+  {
+    slug: "demo-swiss",
+    label: "10-player Swiss",
+    description: "Chess-style rounds ranked by points and Buchholz",
+  },
 ] as const;

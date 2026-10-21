@@ -4,8 +4,9 @@ import { propagate } from "@/engine/propagation";
 import { orderBySeed } from "@/engine/seeding";
 import { roundRobinMatches } from "@/engine/round-robin";
 import { generateSingleElimination } from "@/engine/single-elimination";
+import { pairSwissRound } from "@/engine/swiss";
 import type { Stage, Team, TeamId } from "@/engine/types";
-import type { TournamentConfig } from "./tournament-config";
+import { standingsConfigOf, type TournamentConfig } from "./tournament-config";
 
 export interface StagePlan {
   stages: Stage[];
@@ -72,6 +73,18 @@ function rawPlan(config: TournamentConfig, teams: Team[], prefix: string): Stage
       });
       return {
         stages: [{ id: stageId, order: 1, type: "DOUBLE_ELIM", groupLabel: null, matches }],
+        groupOf: {},
+      };
+    }
+    case "SWISS": {
+      const stageId = `${prefix}sw`;
+      const { matches } = pairSwissRound(teams, [], standingsConfigOf(config), {
+        round: 1,
+        stageId,
+        idPrefix: prefix,
+      });
+      return {
+        stages: [{ id: stageId, order: 1, type: "SWISS", groupLabel: null, matches }],
         groupOf: {},
       };
     }

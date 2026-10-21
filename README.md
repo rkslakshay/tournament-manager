@@ -92,6 +92,7 @@ Open the public link in another window to watch it update.
 | `npm run dev`                        | Start the dev server                                                                                                           |
 | `npm test`                           | Unit and integration tests (Vitest, temporary SQLite databases)                                                                |
 | `npm run test:cov`                   | Tests with coverage (the engine must stay at 90% or above)                                                                     |
+| `npm run test:pg`                    | Server integration tests against a real, throwaway PostgreSQL (embedded-postgres) using the production migrations              |
 | `npm run test:e2e`                   | Playwright walkthroughs (desktop and mobile) on an isolated production build; run `npx playwright install chromium` once first |
 | `npm run lint` / `npm run typecheck` | ESLint / `tsc --noEmit`                                                                                                        |
 | `npm run db:migrate`                 | Apply Prisma migrations in development                                                                                         |

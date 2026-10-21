@@ -11,6 +11,23 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 11:15: Task 3.2: Routes and admin auth
+
+- Every route from DESIGN.md is implemented as a Next.js App Router handler under `src/app/api/`:
+  - `POST /api/tournaments` returns 201 `{ slug, adminToken }`.
+  - `GET /api/t/:slug` returns the public view with `Cache-Control: no-store`.
+  - `POST /teams` returns 201 `{ teams }`.
+  - `DELETE /teams/:teamId` and `PUT /teams/order` return `{ teams }`.
+  - `POST /start` returns the view.
+  - `PUT /matches/:matchId/result` returns `{ changedMatchIds, resetMatchIds, status, view }`. The view is included so the admin UI updates without a second request.
+  - `POST /schedule` returns `{ scheduled, unscheduled }`.
+  - The SSE `/events` route arrives in 5.1.
+- Admin guard: `requireAdmin(request, slug)` reads `Authorization: Bearer <token>` and checks it in constant time. It runs before the body is parsed, so unauthenticated requests get 401 regardless of payload.
+- New service `scheduleTournament`, behind `POST /schedule`. It replaces the tournament's venues, runs the engine scheduler over open matches (generous slot budget: open × (rest + 1) + 1), sets `scheduledAt = startTime + slot × slotMinutes` and the venue, and clears the schedule of matches that don't fit. It runs in one transaction and bumps versions.
+- API tests call the route handlers directly. `useApiTestDb()` points `getDb()` at a fresh SQLite DB through the same global slot used for the dev hot-reload cache.
+- Tests: 4 new, 167 total (schedule service plus an end-to-end API smoke test). `next build` passes, which validates the handler signatures.
+- Next task: 3.3 rate limiting.
+
 ## 2026-10-21 10:50: Task 3.1: zod schemas and error format
 
 - `src/lib/api-schemas.ts` defines the request body schemas for every write endpoint: create tournament, add teams, reorder, result, schedule. It also defines the `ApiErrorBody` type. The schemas live in `lib/` so client forms validate with the same rules.

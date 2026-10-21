@@ -11,6 +11,20 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 08:25: Task 2.1: DB client, repositories, test DB helper
+
+- `src/server/db.ts`: a shared `getDb()` Prisma client (cached on `globalThis` for dev hot reload) and `Db`/`Tx` types.
+- `src/server/errors.ts`: `ServiceError(code, message, details)` with stable codes mapped to HTTP status (400, 401, 404, 409, 429, 500).
+- `src/server/repositories/tournament-repository.ts`:
+  - Mappers between Prisma rows and engine objects. Source JSON is validated with zod when read back.
+  - `loadAggregate` (tournament + teams by seed + stages by order, with matches sorted by bracket, round and position) and `findTournamentBySlug`.
+  - `StoredMatch` extends the engine `Match` with `version`, `scheduledAt` and `venueId`. Engine functions spread matches, so these fields pass through untouched.
+- `src/lib/tournament-config.ts`: zod schema for the tournament `config` JSON (format, legs, points, tiebreakers, third place, grand-final reset, groups, edit policy) with defaults. It lives in `lib/` so the client wizard can share it.
+- Test DB helper (`src/server/__tests__/test-db.ts`): each test file gets a fresh SQLite file in `.tmp/test-db/` with every migration's SQL applied directly. No `prisma` subprocess is needed, so it is fast and parallel-safe.
+- Tests: 7 new, 115 total. Covered: a full round-trip of generated matches through the DB, defaults, not-found errors, the DB-level duplicate-name constraint, and config validation.
+- Dependencies: zod (TECHSTACK).
+- Next task: 2.2 createTournament.
+
 ## 2026-10-21 08:00: Gate 1: passed
 
 - 108 tests pass (all property tests included). Engine coverage: 100% statements, lines and functions; 96.96% branches. The 90% threshold is enforced by `npm run test:cov`. Lint and typecheck are clean.

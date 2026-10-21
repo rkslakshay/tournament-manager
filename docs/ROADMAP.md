@@ -28,7 +28,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 
 ## Phase 2: Persistence and services
 
-- [ ] 2.1 DB client, repositories, test DB helper
+- [x] 2.1 DB client, repositories, test DB helper
 - [ ] 2.2 `createTournament` (slug generation, admin token hashing) + integration tests
 - [ ] 2.3 Team management with lifecycle validation
 - [ ] 2.4 `startTournament` (generate + persist in one transaction)

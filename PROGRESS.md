@@ -1,5 +1,82 @@
 # Progress Log
 
+## Phase 7 final summary (2026-10-22)
+
+**Tasks completed (19 of 20):**
+
+- **7A verification:**
+  - 7.1 clean-clone verification;
+  - 7.2 secrets audit (`.gitignore` hardened);
+  - 7.3 engine edge-case review (2 bugs fixed).
+- **7B gaps:**
+  - 7.4 PostgreSQL verified for real (embedded-postgres; all server tests pass on PostgreSQL 17, also in CI);
+  - 7.5 forfeit / walkover;
+  - 7.6 extra time / penalties.
+- **7C stretch:**
+  - 7.7 Swiss system (with demo);
+  - 7.8 pub/sub adapter: in-memory plus Redis;
+  - 7.9 CSV export.
+- **7D presentation:**
+  - 7.10 8 generated screenshots;
+  - 7.11 demo GIF;
+  - 7.12 README rewrite.
+- **7E publishing:**
+  - 7.13 tooling check;
+  - 7.14 published to GitHub;
+  - 7.16 NEEDS_YOU.md.
+- **7F preparation:**
+  - 7.17 CODE_TOUR;
+  - 7.18 30-question INTERVIEW_NOTES;
+  - 7.19 RESUME;
+  - 7.20 STUDY_GUIDE (every exercise verified by mutation).
+
+**Skipped:**
+
+- **7.15 deploy.** The Vercel CLI is logged out and no Postgres connection string exists; credentials are never invented. Steps are in NEEDS_YOU.md.
+- **User accounts (optional).** Skipped: deployment is still pending, and accounts need product decisions (identity provider, recovery) that should be yours.
+
+**Verified numbers (final code, measured last):**
+
+- **305** unit and integration tests in 42 files, all passing.
+- **10/10** Playwright runs (5 scenarios × desktop and mobile).
+- **Engine coverage: 99.9% of lines, 96.3% of branches** (145 engine tests); all code 97.6% lines.
+- **124/124** server tests on real PostgreSQL 17.
+- GitHub Actions: `check`, `e2e` and `postgres` jobs green on every run since the scheduler fix landed. The run for the final commit was in progress when this was written.
+
+**Bugs found and fixed during Phase 7:**
+
+1. Bracket generators accepted duplicate team ids (a bracket could contain one team twice).
+2. Equal seeds made brackets depend on input order (non-deterministic engine output).
+3. A Swiss match in the last round was labelled "Final" (knockout labelling applied to Swiss).
+4. Standings tables wrapped team names; a lone table used half the width.
+5. A public page opened before the start stayed on "Fixtures" after the tournament went live.
+6. The demo GIF showed an admin token (from a throwaway local database); now masked.
+7. **The scheduler was quadratic in its slot budget**: a 32-team league took 117 s; now under 1 s. GitHub CI caught it as a timeout.
+8. The `.gitignore` directory patterns only matched once the directories existed.
+9. Two documentation inaccuracies found by fact-checking: "over 150" engine tests (it was 144), and a concurrency claim that the `WHERE version` guard alone stops the SQLite race (it's the `expectedVersion` check). Both corrected.
+
+**GitHub:** https://github.com/rkslakshay/tournament-manager (public; description and 10 topics).
+**Deployed:** no.
+
+**NEEDS_YOU.md in brief:**
+
+1. Create a Neon database (pooled and direct URLs).
+2. Optionally create Upstash Redis (`REDIS_URL`) for instant cross-instance updates.
+3. `npx vercel login`, `link`, `env add` (DATABASE_URL, DIRECT_URL, REDIS_URL), `deploy --prod`.
+4. Set `NEXT_PUBLIC_SITE_URL`, redeploy, and seed the demos with the given PowerShell one-liner.
+5. Put the live URL at the top of the README.
+
+**Known limitations (also in README and INTERVIEW_NOTES):**
+
+- Redis adapter tested only with `ioredis-mock`.
+- In-memory rate limiter.
+- Monrad (not FIDE Dutch) Swiss.
+- Greedy scheduler.
+- No accounts.
+- Build-tool `npm audit` advisories that need Next 16.
+
+**Exact next step:** follow NEEDS_YOU.md step 1 (create the Neon database), then steps 3–5 to deploy. After that, run `npx vercel env add REDIS_URL production` with a live Redis and confirm two browser windows on the deployed site update instantly. That is the one claim still verified only against a mock.
+
 ## Final summary (2026-10-21, autonomous run)
 
 **Phases completed:** 0, 1, 2, 3, 4, 5 and 6. Every roadmap task is checked off, and every gate (0–6) was verified. Stretch tasks were not started.

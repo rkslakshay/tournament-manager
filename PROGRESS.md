@@ -45,6 +45,13 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-22 05:40: Task 7.19: docs/RESUME.md
+
+- Three resume-bullet styles (concise, technical, impact-focused), a 30-second pitch, a timed 2-minute demo script, and a LinkedIn project paragraph.
+- Only verified figures are used: 305 tests, 145 engine tests, engine 99.9% line coverage, 5 formats, and "full integration suite against a real PostgreSQL 17 in CI". The last was checked first: the GitHub Actions `postgres` job passed, alongside `check` and `e2e`.
+- No users or traffic are claimed (not deployed).
+- Interview answer 16 (concurrency) was corrected for accuracy while cross-checking: on SQLite the `expectedVersion` check is what stops the second simultaneous writer, and the `WHERE version` update condition is defense in depth for PostgreSQL. Also updated every doc that quotes test counts after the scheduler fix (304→305, 144→145).
+
 ## 2026-10-22 05:20: Bug fix found by GitHub CI: scheduler was quadratic in the slot budget
 
 - The first CI runs on GitHub passed except one: the scheduler property "schedules everything when there is plenty of room" timed out (more than 5 s) under coverage on the GitHub runner.

@@ -7,7 +7,7 @@ worked example below was produced by running the real code.
 
 1. **The engine is pure.** Everything in `src/engine/` is plain TypeScript: give a function
    teams and matches, get matches or tables back. No database, no network, no clock, no
-   unseeded randomness. That is why the engine's 144 tests run in a few seconds.
+   unseeded randomness. That is why the engine's 145 tests run in a few seconds.
 2. **A match says where its players come from.** Instead of storing "Lions play Sharks in the
    final", a final stores `homeSource: { type: "winner", matchId: "sf1" }`. A tournament is a
    graph of matches. One function (`propagate`) fills in the names whenever results change.
@@ -257,7 +257,8 @@ needs rest between games, and a semi-final cannot start before its quarter-final
 **Algorithm.** Greedy, _most constrained first_. Repeatedly take the ready matches (all their
 feeders are placed), count how many (slot, venue) options each still has, and place the one with
 the fewest options in its earliest option. Ties go to the match whose team has the most games
-left. Matches that cannot fit are reported in `unscheduled`, never dropped silently.
+left. Options are only counted up to 32: a match with that many choices is not
+constrained, and counting them all made a 496-match league take two minutes. Matches that cannot fit are reported in `unscheduled`, never dropped silently.
 
 _Worked example, 4-team knockout, one court, one rest slot between games:_ semi 1 → slot 0,
 semi 2 → slot 1, final → slot 3 (it must wait one slot after semi 2).

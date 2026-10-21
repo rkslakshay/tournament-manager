@@ -1,7 +1,7 @@
 # Interview notes
 
 Likely questions with short, honest answers, and where to point in the code. Numbers come from the
-last verified run: **304 unit and integration tests, 144 of them engine tests, 10/10 Playwright
+last verified run: **305 unit and integration tests, 145 of them engine tests, 10/10 Playwright
 runs, engine coverage 99.9% of lines and 96.3% of branches.**
 
 ## Architecture and design
@@ -128,8 +128,10 @@ runs, engine coverage 99.9% of lines and 96.3% of branches.**
 
 - Every match has a `version`. The client sends the version it saw; a stale one gets 409
   `VERSION_CONFLICT` and nothing changes.
-- The write itself is `UPDATE … WHERE id = ? AND version = ?`, so even two simultaneous requests
-  can't both win. A test fires two at once and checks that exactly one succeeds.
+- A test fires two requests at once and checks that exactly one succeeds. On SQLite, write
+  transactions run one at a time, so the version check above is what catches the second.
+- The write itself is also `UPDATE … WHERE id = ? AND version = ?`, as defense in depth for
+  PostgreSQL, where two transactions can read the same version before either writes.
 
 **17. Why publish live events after the transaction commits?**
 
@@ -221,6 +223,8 @@ runs, engine coverage 99.9% of lines and 96.3% of branches.**
   - The public page stayed on "Fixtures" after a tournament went live.
   - The admin token reappeared in the URL because Next.js re-wrote history after my effect ran.
   - A scheduler case needed a tie-break.
+  - CI on GitHub caught a performance bug: the scheduler counted every option for every match, so a
+    32-team league (496 matches) took 117 s. Capping the count made it take under 1 s.
 - Each now has a regression test or a documented check.
 
 **29. How did you make sure the Postgres path actually works?**

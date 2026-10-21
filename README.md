@@ -125,13 +125,13 @@ Open the public link in another window to watch it update.
 
 | Command                              | What runs                                                                                         |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------- |
-| `npm test`                           | 304 unit and integration tests (Vitest; each integration file gets a fresh SQLite database)       |
+| `npm test`                           | 305 unit and integration tests (Vitest; each integration file gets a fresh SQLite database)       |
 | `npm run test:cov`                   | The same with coverage; CI fails if engine coverage drops below 90%                               |
 | `npm run test:pg`                    | The server integration suites against a real, throwaway PostgreSQL 17 (production migrations)     |
 | `npm run test:e2e`                   | Playwright on a production build, desktop and mobile (run `npx playwright install chromium` once) |
 | `npm run lint` / `npm run typecheck` | ESLint / `tsc --noEmit`                                                                           |
 
-Measured on the final code: **304 tests passing, 10/10 E2E runs, engine coverage 99.9% of lines
+Measured on the final code: **305 tests passing, 10/10 E2E runs, engine coverage 99.9% of lines
 and 96.3% of branches** (all code: 97.6% lines). Highlights:
 
 - **Property-based tests** (fast-check) for the invariants that matter:

@@ -45,6 +45,21 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 21:40: Task 7.4: PostgreSQL verified for real
+
+- Docker: not installed on this machine (`docker: command not found`), so the second option was used.
+- `embedded-postgres@17.10.0-beta.17` (devDependency): ships real PostgreSQL binaries per platform, which makes Postgres testable with no Docker or system install. Only beta versions are published; the binaries are stock PostgreSQL 17.
+- `npm run test:pg` (`scripts/test-postgres.mjs`):
+  1. Starts a throwaway server on port 54329 with a random password in `.tmp/pg-data`.
+  2. Generates the Postgres client.
+  3. Runs a real `prisma migrate deploy` of `prisma/postgres/migrations` into an empty database: the migration applied cleanly.
+  4. Runs every test under `src/server` with `TEST_POSTGRES_URL` set. `test-db.ts` then gives each test file its own PostgreSQL database built from the production migration SQL, and drops it with `WITH (FORCE)` afterwards.
+  5. Always: stops the server, deletes its data, and regenerates the SQLite client.
+- Result: **17 files, 96 tests passed on PostgreSQL 17, with no incompatibilities.** The JSONB sources, unique constraints (P2002), the transactions and the optimistic-concurrency race test all behave the same as on SQLite.
+- Cleanup verified: nothing is listening on 54329, the data dir is removed, and the SQLite suite still passes (255). A pre-existing PostgreSQL Windows service on port 5432 belongs to the machine and was not touched.
+- A CI job `postgres` runs `npm run test:pg` on every push. BLOCKERS 6.2 is marked resolved. The README lists the script.
+- Also deleted old scratch files under the ignored `.tmp/` that held local test admin tokens.
+
 ## 2026-10-21 21:00: Task 7.3: Skeptical engine review
 
 - New `src/engine/__tests__/edge-cases.test.ts` (24 tests) covers the gaps the existing suites didn't pin down:

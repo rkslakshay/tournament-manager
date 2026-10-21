@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { StandingsConfig } from "@/engine/types";
 
 export const FORMATS = ["ROUND_ROBIN", "SINGLE_ELIM", "DOUBLE_ELIM", "GROUP_KNOCKOUT"] as const;
 export type Format = (typeof FORMATS)[number];
@@ -71,6 +72,16 @@ export type TournamentConfigInput = z.input<typeof tournamentConfigSchema>;
 /** Parse stored or submitted config, filling defaults. Throws a ZodError when invalid. */
 export function parseTournamentConfig(value: unknown): TournamentConfig {
   return tournamentConfigSchema.parse(value);
+}
+
+/** The engine's standings settings taken from a tournament config. */
+export function standingsConfigOf(config: TournamentConfig): StandingsConfig {
+  return {
+    pointsForWin: config.pointsForWin,
+    pointsForDraw: config.pointsForDraw,
+    pointsForLoss: config.pointsForLoss,
+    tiebreakers: [...config.tiebreakers],
+  };
 }
 
 /** True for formats that produce league tables (and therefore allow draws). */

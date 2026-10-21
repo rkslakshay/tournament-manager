@@ -32,7 +32,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 - [x] 2.2 `createTournament` (slug generation, admin token hashing) + integration tests
 - [x] 2.3 Team management with lifecycle validation
 - [x] 2.4 `startTournament` (generate + persist in one transaction)
-- [ ] 2.5 `recordResult` and `editResult` with propagation and invalidation policy
+- [x] 2.5 `recordResult` and `editResult` with propagation and invalidation policy
 - [ ] 2.6 `getPublicView` (derived standings, no secrets)
 - [ ] 2.7 Optimistic concurrency via match `version`
 - **Gate 2**: service integration tests pass, state-transition tests cover illegal moves.

@@ -11,6 +11,22 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 09:50: Task 2.5: recordResult and editResult with propagation and invalidation policy
+
+- `recordResult(db, tournamentId, matchId, { homeScore, awayScore, confirmReset })` runs in one transaction:
+  1. Validate status (IN_PROGRESS or COMPLETED) and match readiness. Both teams must be known; byes cannot be scored.
+  2. Apply the score.
+  3. Recompute group rankings for finished groups and run `propagate` over every match of every stage.
+  4. Enforce the edit policy.
+  5. Persist only the changed rows, bumping `version`.
+  6. Set COMPLETED when every match is finished, or back to IN_PROGRESS if an edit re-opened matches.
+- `editResult` is the same path but requires an existing result. One implementation means record and edit cannot drift apart.
+- Edit policy: under BLOCK_EDIT, an edit that changes participants of already-played matches gets EDIT_BLOCKED. Under RESET_DOWNSTREAM (the default), it gets CONFIRMATION_REQUIRED with `details.invalidated` (id, round, teams) unless `confirmReset: true`, in which case those results are cleared. Score-only edits that keep the same winner never invalidate anything.
+- Assumption (DESIGN.md "draws in knockout"): draws are rejected in knockout stages (single, double, and the knockout of groups + knockout) rather than adding an extra-time/penalties field. Draws are allowed in ROUND_ROBIN and GROUP stages.
+- Added `standingsConfigOf(config)` to `src/lib/tournament-config.ts`, and a shared integration-test fixture helper (`src/server/__tests__/fixtures.ts`).
+- Tests: 10 new, 145 total. Covered: draws, winner advancement, completion, invalid targets, groups feeding the knockout, re-resolution, confirmation then reset, BLOCK_EDIT, score-only edits, and COMPLETED→IN_PROGRESS on reset.
+- Next task: 2.6 getPublicView.
+
 ## 2026-10-21 09:20: Task 2.4: startTournament
 
 - `src/lib/plan-stages.ts`: `planStages(config, teams, idPrefix)` picks the generator for the format and propagates byes. It is pure and lives in `lib/` so the admin UI can preview fixtures client-side with the same code (no preview endpoint needed).

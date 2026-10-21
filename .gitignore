@@ -11,3 +11,4 @@ next-env.d.ts
 prisma/*.db
 prisma/*.db-journal
 .tmp/
+.next-e2e/

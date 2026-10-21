@@ -5,3 +5,4 @@ playwright-report
 test-results
 prisma/migrations
 package-lock.json
+.next-e2e

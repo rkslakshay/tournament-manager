@@ -11,6 +11,19 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 16:30: Gate 4: passed (Playwright walkthrough)
+
+- `e2e/walkthrough.spec.ts` runs on desktop Chrome and a Pixel 7 profile. All 6 pass.
+  1. A full knockout through the UI only: create via the wizard, open the admin link (token stripped from the URL), paste 4 teams, reseed with a button, preview, start via the dialog, and enter both semis and the final. Then flip a semi-final, confirm the reset dialog naming the final, replay the final, and check the public page shows "Champion", "Completed", the Bracket tab by default, and fixtures.
+  2. A round robin where a result puts the winner top of the derived "League" table with 3 points.
+  3. Unknown slugs return 404 with the not-found page.
+- Isolation (`e2e/start-server.mjs`): a fresh `prisma/e2e.db` with migrations applied, a production build in `.next-e2e` (`distDir` is configurable via `NEXT_DIST_DIR`), port 3100 and relaxed rate limits. Running E2E never touches dev data or a running `npm run dev`.
+  - Decision: production build rather than `next dev`, because the dev-tools overlay button ("Open Next.js Dev Tools") collided with role locators and on-demand compilation made timing flaky.
+- CI: a new `e2e` job (after `check`) installs Chromium and runs `npm run test:e2e`, uploading traces on failure.
+- Dependencies: @playwright/test (TECHSTACK).
+- Unit and integration tests: 215 passing; lint and typecheck clean.
+- Next task: 5.1 SSE hub and `/events` endpoint.
+
 ## 2026-10-21 15:50: Task 4.6: Mobile polish, dark mode, accessibility pass, OG metadata
 
 - Mobile (checked at 375 px in the browser):

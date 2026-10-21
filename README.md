@@ -27,6 +27,7 @@ npm run dev            # http://localhost:3000
 | `npm run dev` | Start the dev server |
 | `npm test` | Run the unit and integration tests (Vitest) |
 | `npm run test:cov` | Tests with a coverage report (engine must stay at 90% or above) |
+| `npm run test:e2e` | Playwright walkthroughs (desktop and mobile) on an isolated production build; run `npx playwright install chromium` once first |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run db:migrate` | Apply Prisma migrations in development |

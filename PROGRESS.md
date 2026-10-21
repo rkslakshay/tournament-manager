@@ -11,6 +11,12 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 19:35: Task 6.4: README
+
+- Rewritten README sections: pitch, demo note, screenshot placeholders (table with target paths under `docs/screenshots/`), feature list, Mermaid architecture flowchart plus layer summary, getting started, full script table, API table (including the status and events routes), testing strategy, design decisions, "what I'd improve next", and project layout.
+- Screenshots are placeholders, as the roadmap asks. Real images need the deployed demo.
+- Next task: 6.5 INTERVIEW_NOTES.
+
 ## 2026-10-21 19:15: Task 6.3: Deployment config (Vercel + Neon)
 
 - `vercel.json`: Next.js framework, `buildCommand: npm run build:prod` (Postgres client, `migrate deploy`, `next build`).

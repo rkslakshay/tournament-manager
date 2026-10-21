@@ -6,6 +6,9 @@ import { StatusBadge } from "@/components/status-badge";
 import { apiFetch, ApiError } from "@/lib/api-client";
 import type { PublicView } from "@/lib/public-view";
 import { FORMAT_LABELS } from "@/lib/tournament-config";
+import { ResultsPanel } from "./results-panel";
+import { SchedulePanel } from "./schedule-panel";
+import { StartPanel } from "./start-panel";
 import { TeamManager } from "./team-manager";
 import { useAdminToken } from "./use-admin-token";
 
@@ -22,6 +25,8 @@ export interface AdminActions {
    */
   run: (write: () => Promise<unknown>, success: string) => Promise<boolean>;
   setView: (view: PublicView) => void;
+  /** Reload the view from the server. */
+  refresh: () => Promise<void>;
   notify: (message: string, tone?: "success" | "error") => void;
 }
 
@@ -69,7 +74,7 @@ export function AdminApp({ initialView }: { initialView: PublicView }) {
     [refresh, notify, forget],
   );
 
-  const actions: AdminActions = { busy, api, run, setView, notify };
+  const actions: AdminActions = { busy, api, run, setView, refresh, notify };
   const started = view.tournament.status !== "DRAFT" && view.tournament.status !== "REGISTRATION";
 
   return (
@@ -107,7 +112,19 @@ export function AdminApp({ initialView }: { initialView: PublicView }) {
         <NoToken slug={slug} />
       ) : (
         <div className="mt-4 space-y-8">
-          {!started && <TeamManager teams={view.teams} actions={actions} />}
+          {started ? (
+            <>
+              <ResultsPanel view={view} actions={actions} />
+              {view.tournament.status === "IN_PROGRESS" && (
+                <SchedulePanel actions={actions} venueNames={view.venues.map((v) => v.name)} />
+              )}
+            </>
+          ) : (
+            <>
+              <TeamManager teams={view.teams} actions={actions} />
+              <StartPanel view={view} actions={actions} />
+            </>
+          )}
         </div>
       )}
     </div>

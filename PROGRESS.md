@@ -11,6 +11,28 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 14:10: Task 4.3: Fixtures preview, start, result entry, edits with confirmation
+
+- Before the start, `StartPanel` previews fixtures in the browser with the same pure `planStages` the server uses: match and round counts per stage, round-one pairings, and a readable error when the settings cannot work (e.g. too few teams for the groups). Start asks for confirmation in a native `<dialog>` (`ConfirmDialog`), explaining that teams lock.
+- After the start, `ResultsPanel` shows every stage grouped by round (double elimination in order: winners, losers, grand final).
+  - Each playable match is a labelled form with two numeric score inputs and Save/Update, operable from the keyboard.
+  - Pending slots show where teams come from ("Winner of SF 1", "Group A 1st"). Byes show "Advances on a bye" or "Not needed".
+  - Client-side checks give whole-number scores and "Knockout matches need a winner" before any request is sent.
+  - Saving is optimistic (`withOptimisticResult`), then replaced by the server's propagated view. On failure the view is rolled back. `expectedVersion` is always sent; VERSION_CONFLICT shows the message and reloads.
+  - CONFIRMATION_REQUIRED opens a dialog listing the matches whose results will be cleared; confirming resends with `confirmReset`.
+- `SchedulePanel` (DESIGN organizer step 6, using the existing endpoint): venues, start time, slot length and rest slots. It reports how many matches did not fit.
+- New pure modules, tested:
+  - `src/lib/match-labels.ts`: round names (Final, Semi-finals, Round of 16, Winners final, Losers round N, Grand final (reset)), short labels (SF 1, QF 2, WB R2 M1, 3rd place), ordinals and source labels.
+  - `src/lib/view-model.ts`: match index, team names, slot text, rounds per stage, walkover detection, config from view, optimistic result, `allowsDraws`.
+- Verified in the browser on a 4-team single elimination with a third-place match:
+  - The preview matched (1v4, 2v3, 4 matches).
+  - Start went through the dialog. A knockout draw was blocked client-side.
+  - Both semis saved and filled the final and third-place match. The final was saved.
+  - Flipping a semi raised the confirmation listing the final; confirming reset it and re-seeded the final with the new winner.
+  - A redundant "Final (Final)" label in that dialog was found and fixed.
+- Tests: 11 new, 211 total.
+- Next task: 4.4 public page.
+
 ## 2026-10-21 13:20: Task 4.2: Admin team management and seed reordering
 
 - `/t/[slug]/admin` (server page, `noindex`) loads the view with `loadPublicView`, which is React-`cache`d per request and returns null for unknown slugs (404). It renders the client `AdminApp`.

@@ -45,6 +45,15 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-22 03:55: Task 7.14: Published to GitHub
+
+- Secrets audit re-run before pushing:
+  - no `.env`/`*.db` tracked or in history;
+  - no token, key or credentialed-URL patterns (the only Postgres URL is the test runner's template, with a password generated at runtime for a throwaway local server);
+  - no personal data beyond the public GitHub username.
+- Found and fixed before publishing: frame 3 of `docs/demo.gif` showed the "Tournament created" panel with an admin link containing a token. The token belonged to a throwaway local database deleted after recording, but no published image should contain one. The recorder now masks that input (Playwright `mask`) and the GIF was re-recorded.
+- Created **https://github.com/rkslakshay/tournament-manager** (public) with `gh repo create --source . --push`, added a description, and added topics: nextjs, typescript, tournament, bracket, round-robin, swiss-system, prisma, server-sent-events, property-based-testing, playwright. `main` pushed; history untouched (no force push).
+
 ## 2026-10-22 03:40: Task 7.13: Available tooling
 
 - `git remote -v`: no remote configured.

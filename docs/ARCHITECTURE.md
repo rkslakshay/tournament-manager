@@ -150,7 +150,7 @@ Venue      { id, tournamentId, name }
 
 ## 5. Real-time
 
-- In-memory SSE hub keyed by tournament slug. `recordResult` publishes `{type:"match_updated", matchId}` after commit.
+- SSE hub keyed by tournament slug behind a `PubSub` interface: in memory by default, Redis pub/sub when `REDIS_URL` is set (`src/server/events.ts`, `src/server/redis-pubsub.ts`). `recordResult` publishes `{type:"match_updated", matchId}` after commit.
 - Public page opens `EventSource('/api/t/{slug}/events')`. On event, it refetches the view (simple and consistent), with polling fallback.
 - Scaling note for docs and interviews: for multiple server instances, replace the in-memory hub with Redis pub/sub. Public GETs can be cached at the edge with short TTL and revalidated on write.
 

@@ -45,6 +45,19 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-22 01:15: Task 7.8: Multi-instance live updates (pub/sub adapter)
+
+- New `PubSub` interface (`src/server/pubsub.ts`: event types, contract, and the shared `ListenerRegistry` that isolates failing listeners) with two adapters:
+  - `createMemoryPubSub` (default, synchronous, as before).
+  - `createRedisPubSub(REDIS_URL)` in `src/server/redis-pubsub.ts`: one `SUBSCRIBE tm:events:<slug>` per instance while it has local viewers (unsubscribing when the last one leaves), `PUBLISH` for every event (so local and remote viewers are treated alike), lazy connections, and errors logged rather than thrown. A lost event only delays viewers until their next re-sync.
+- `eventHub` picks Redis when `REDIS_URL` is set. Services and the SSE route are unchanged.
+- Dependencies:
+  - `ioredis` (runtime): the standard Node Redis client with pub/sub support.
+  - `ioredis-mock` (dev): no Redis server is available on this machine, and the task allows the mock. Checked first that the mock delivers pub/sub across separate instances.
+- Contract suite `pubsub-contract.test.ts`, run with `describe.each` against both adapters: delivery to every subscriber of the slug only, unsubscribe and subscriber counts, isolation from a throwing listener, and the cross-instance rule (Redis delivers across two hub instances standing in for two servers; memory documents that it does not). Plus Redis-specific malformed-message and foreign-channel handling, and adapter selection. 10 tests; **298 passing**; a production build (`next build`) compiles.
+- Docs: DEPLOYMENT.md section rewritten, ARCHITECTURE.md §5, `.env.example`. Stretch S.2 checked off.
+- About the caveat (honest status): the "up to ~30 s late" note is **kept for deployments without Redis**. With `REDIS_URL` set, cross-instance delivery is immediate, verified against `ioredis-mock` only; a live Redis has not been exercised (listed in NEEDS_YOU).
+
 ## 2026-10-22 00:30: Task 7.7: Swiss system
 
 - Engine `src/engine/swiss.ts` (pure, written test-first):

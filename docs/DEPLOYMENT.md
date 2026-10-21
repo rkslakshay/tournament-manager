@@ -27,6 +27,7 @@ Locally everything runs on SQLite; production uses the generated PostgreSQL sche
 | `NEXT_PUBLIC_SITE_URL`         | recommended | `https://your-app.vercel.app`, used for Open Graph links |
 | `RATE_LIMIT_CREATE_PER_HOUR`   | no          | default `10` per client IP                               |
 | `RATE_LIMIT_WRITES_PER_MINUTE` | no          | default `120` per client IP                              |
+| `REDIS_URL`                    | recommended | Redis for cross-instance live updates, `rediss://...`    |
 
 3. Deploy. The first build creates the tables.
 
@@ -60,19 +61,24 @@ After changing the schema:
 
 A unit test fails if the generated schema is stale.
 
-## Real-time on serverless: what to expect
+## Real-time across instances: set `REDIS_URL`
 
-Live updates use Server-Sent Events from an in-memory hub (`src/server/events.ts`). On a single
-long-running server every viewer gets every event instantly. On Vercel:
+Live updates use Server-Sent Events fed by a pub/sub hub (`src/server/events.ts`) with two
+adapters behind one interface:
 
-- each function invocation can be a different instance, so an event published by the instance that
-  handled a result may not reach a viewer connected to another instance;
-- streams are capped at `maxDuration` (60 s), after which `EventSource` reconnects by itself.
+- **Redis** (used when `REDIS_URL` is set, for example an Upstash or Redis Cloud URL): each
+  instance subscribes to a tournament's channel while it has viewers, and every result is published
+  through Redis, so viewers on any instance get it immediately. The adapter is tested against a
+  shared contract suite with `ioredis-mock` (two hubs standing in for two servers); it has not yet
+  been run against a live Redis server.
+- **In memory** (default): correct on a single long-running server. On Vercel without Redis, an
+  event published by one function instance may not reach a viewer connected to another.
 
-The client covers both: it refetches the full view on every reconnect and re-syncs every 30 seconds
-while connected (polling every 10 seconds if SSE fails entirely). In the worst case a viewer sees a
-result within about 30 seconds. For instant cross-instance updates, replace the hub with Redis
-pub/sub (Stretch task S.2). Public GET responses could also be cached at the edge with a short TTL.
+Either way, streams end after `maxDuration` (60 s) and `EventSource` reconnects by itself; the client
+refetches the full view on every reconnect and re-syncs every 30 seconds while connected (polling
+every 10 seconds if SSE fails entirely). So **without Redis** a viewer may see a result up to about
+30 seconds late on serverless hosting; **with Redis** updates arrive immediately. Public GET
+responses could also be cached at the edge with a short TTL.
 
 ## Rate limiting on serverless
 

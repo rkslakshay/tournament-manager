@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "ioredis": "^5.11.1",
     "next": "^15.5.28",
     "react": "^19.1.10",
     "react-dom": "^19.1.10",
@@ -44,6 +45,7 @@
     "eslint-config-next": "^15.5.28",
     "eslint-config-prettier": "^10.1.8",
     "fast-check": "^4.10.2",
+    "ioredis-mock": "^8.13.1",
     "prettier": "^3.9.10",
     "prisma": "^6.19.3",
     "tailwindcss": "^4.3.3",

@@ -41,7 +41,7 @@
 - **10/10** Playwright runs (5 scenarios × desktop and mobile).
 - **Engine coverage: 99.9% of lines, 96.3% of branches** (145 engine tests); all code 97.6% lines.
 - **124/124** server tests on real PostgreSQL 17.
-- GitHub Actions: `check`, `e2e` and `postgres` jobs green on every run since the scheduler fix landed. The run for the final commit was in progress when this was written.
+- GitHub Actions: the last _completed_ run (`4970727`) passed all three jobs (`check`, `e2e`, `postgres`). One earlier run (`4eba749`) failed on the scheduler timeout fixed in `8ddc10c`. The runs that include that fix (`6ab576e`, `341db2a`) were still in progress at hand-off; check them on the repository's Actions tab.
 
 **Bugs found and fixed during Phase 7:**
 

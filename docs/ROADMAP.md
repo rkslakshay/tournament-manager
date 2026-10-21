@@ -77,3 +77,37 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 - [ ] S.2 Redis pub/sub for multi-instance SSE
 - [ ] S.3 CSV export of standings and fixtures
 - [ ] S.4 User accounts and "my tournaments"
+
+## Phase 7: Verification, gaps, stretch, presentation, publishing
+
+### 7A. Independent verification
+- [ ] 7.1 Clean-state run: install, lint, typecheck, unit tests, coverage, full Playwright suite; record real numbers
+- [ ] 7.2 Secrets and junk audit (gitignore, no tokens or personal data, no large or generated files)
+- [ ] 7.3 Skeptical engine review: edge cases (2/3/5/17/128 teams, duplicate seeds, all draws, 3- and 4-way cycles, deep double-elimination edits)
+
+### 7B. Close known gaps
+- [ ] 7.4 Verify PostgreSQL for real (Docker, else embedded-postgres) and run integration tests against it
+- [ ] 7.5 Forfeit / walkover action (service, route, UI, schema, tests, DESIGN.md)
+- [ ] 7.6 Knockout draws via extra-time/penalties winner (decidedBy: REGULAR | EXTRA_TIME | PENALTIES)
+
+### 7C. Stretch features
+- [ ] 7.7 Swiss system (pairing, no rematches, byes, Buchholz) with service, UI and demo
+- [ ] 7.8 Pub/sub adapter: in-memory and Redis (REDIS_URL), contract tests
+- [ ] 7.9 CSV export of standings and fixtures
+
+### 7D. Presentation assets
+- [ ] 7.10 Playwright screenshots into docs/screenshots and README
+- [ ] 7.11 Demo GIF or frame sequence (if practical)
+- [ ] 7.12 README polish, accurate against the final code
+
+### 7E. Deployment and publishing
+- [ ] 7.13 Check available tooling (git remote, gh, vercel, docker)
+- [ ] 7.14 Publish to GitHub (if gh is authenticated), after re-running the secrets audit
+- [ ] 7.15 Deploy to Vercel (if authenticated and a Postgres URL is available)
+- [ ] 7.16 NEEDS_YOU.md with remaining manual steps
+
+### 7F. Interview and resume preparation
+- [ ] 7.17 docs/CODE_TOUR.md
+- [ ] 7.18 docs/INTERVIEW_NOTES.md expanded to 25+ questions with honest limitations
+- [ ] 7.19 docs/RESUME.md
+- [ ] 7.20 docs/STUDY_GUIDE.md

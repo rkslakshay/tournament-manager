@@ -7,6 +7,7 @@ import { Tabs, type TabItem } from "@/components/ui/tabs";
 import type { PublicView } from "@/lib/public-view";
 import { FORMAT_LABELS } from "@/lib/tournament-config";
 import { indexMatches, stageTitle, teamNamer } from "@/lib/view-model";
+import { Bracket } from "./bracket";
 import { FixturesList } from "./fixtures-list";
 import { StandingsTable } from "./standings-table";
 
@@ -44,7 +45,25 @@ export function PublicTournament({ initialView }: { initialView: PublicView }) {
     label: "Fixtures",
     content: <FixturesList view={view} index={index} />,
   });
-  const [active, setActive] = useState(tabs[0]?.id ?? "fixtures");
+  const knockoutStages = view.stages.filter(
+    (s) => s.type === "SINGLE_ELIM" || s.type === "DOUBLE_ELIM",
+  );
+  if (knockoutStages.length > 0) {
+    tabs.push({
+      id: "bracket",
+      label: "Bracket",
+      content: (
+        <div className="space-y-8">
+          {knockoutStages.map((stage) => (
+            <Bracket key={stage.id} view={view} index={index} stage={stage} />
+          ))}
+        </div>
+      ),
+    });
+  }
+  const [active, setActive] = useState(
+    leagueStages.length > 0 ? "standings" : knockoutStages.length > 0 ? "bracket" : "fixtures",
+  );
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">

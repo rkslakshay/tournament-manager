@@ -11,6 +11,20 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 15:10: Task 4.5: Bracket visualization
+
+- `src/lib/bracket-layout.ts` (pure, tested): `layoutBracket` places matches in one column per round.
+  - Round-one matches stack one per row. Later matches are centred on their in-section feeders; a single feeder keeps the same height, which suits losers-bracket drop-down rounds.
+  - Matches with no in-section feeder (the third-place match) go below the column.
+  - It also returns the feeder→match edges.
+- `Bracket` component: absolutely positioned compact `MatchCard`s with SVG elbow connector lines and round headings per column. It sits in a horizontally scrollable, focusable container so it works on mobile.
+  - Double elimination renders Winners, Losers and Grand-final sections. GF1→GF2 is connected because GF2 is fed by GF1's winner.
+  - Winners are in bold, TBD and bye slots are muted italics, and status is text.
+- The public page gains a Bracket tab for SINGLE_ELIM and DOUBLE_ELIM stages (including the knockout of groups + knockout). The default tab is Standings when league tables exist, otherwise Bracket.
+- Verified visually on a 6-team double elimination with 7 results: top-seed byes, connectors, the winners final, and losers-bracket byes propagated from losers of bye matches.
+- Tests: 4 new, 215 total.
+- Next task: 4.6 mobile polish, dark mode, accessibility, OG metadata.
+
 ## 2026-10-21 14:40: Task 4.4: Public page with standings and fixtures tabs
 
 - `/t/[slug]`: a server-rendered page (`force-dynamic`, metadata title from the tournament) that passes the view to the client `PublicTournament`. Unknown slugs give 404.

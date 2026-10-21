@@ -51,7 +51,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 - [x] 4.2 Admin: team management and seed reordering
 - [x] 4.3 Admin: fixtures preview, start, result entry, edit with invalidation confirmation
 - [x] 4.4 Public page: standings and fixtures tabs
-- [ ] 4.5 Bracket visualization component
+- [x] 4.5 Bracket visualization component
 - [ ] 4.6 Mobile polish, dark mode, accessibility pass, OG metadata
 - **Gate 4**: manual walkthrough scripted in Playwright passes.
 

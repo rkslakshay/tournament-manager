@@ -11,6 +11,15 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 09:20: Task 2.4: startTournament
+
+- `src/lib/plan-stages.ts`: `planStages(config, teams, idPrefix)` picks the generator for the format and propagates byes. It is pure and lives in `lib/` so the admin UI can preview fixtures client-side with the same code (no preview endpoint needed).
+- `startTournament(db, id)` runs in one transaction: checks the REGISTRATION→IN_PROGRESS transition and at least 2 teams, plans the stages, inserts stages (stage `config` stores `groupLabel`) and matches, writes team group labels, and sets IN_PROGRESS.
+- Engine errors from an impossible configuration (e.g. 3 groups with 5 teams) become VALIDATION (400), and the transaction rolls back.
+- Ids: every stage and match id is prefixed with `{tournamentId}-`.
+- Tests: 6 new, 135 total. Covered: all four formats, bye propagation, group labels, illegal starts and rollback.
+- Next task: 2.5 recordResult and editResult.
+
 ## 2026-10-21 09:00: Task 2.3: Team management with lifecycle validation
 
 - `src/server/lifecycle.ts` holds the tournament state machine:

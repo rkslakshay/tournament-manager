@@ -11,6 +11,19 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 08:45: Task 2.2: createTournament
+
+- `createTournament(db, { name, sport, config })`:
+  - Validates with zod and starts the tournament in REGISTRATION.
+  - Slug is `slugify(name)` plus a 6-character random suffix, retried up to 5 times on unique-constraint collisions.
+  - Admin token is 32 random bytes in base64url. It is returned once; only its SHA-256 hex hash is stored.
+- `authorizeAdmin(db, slug, token)`: constant-time comparison (`timingSafeEqual` on the digests). A missing or wrong token gives the same UNAUTHORIZED error; an unknown slug gives NOT_FOUND.
+- `src/lib/slug.ts` (`slugify`, which strips accents) and `src/server/security.ts` (token generation, hashing, comparison, random suffix).
+- Decision: the random slug suffix means public URLs cannot be guessed from the name alone. They are still public by design.
+- Tests: 6 new, 121 total (integration tests against a temporary SQLite DB).
+- Lesson for future sessions: the Bash tool rewrites backslash escapes inside heredocs (`\u0300`, `\`). Source files are written with the Write and Edit tools instead.
+- Next task: 2.3 team management.
+
 ## 2026-10-21 08:25: Task 2.1: DB client, repositories, test DB helper
 
 - `src/server/db.ts`: a shared `getDb()` Prisma client (cached on `globalThis` for dev hot reload) and `Db`/`Tx` types.

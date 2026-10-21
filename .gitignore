@@ -1,14 +1,26 @@
-node_modules/
-.next/
-out/
-coverage/
-playwright-report/
-test-results/
+# dependencies and build output
+node_modules
+.next
+.next-e2e
+out
 *.tsbuildinfo
 next-env.d.ts
+
+# test output
+coverage
+playwright-report
+test-results
+.tmp
+
+# local env and databases (never commit)
 .env
 .env.local
+.env.*.local
 prisma/*.db
 prisma/*.db-journal
-.tmp/
-.next-e2e/
+
+# tooling
+.vercel
+*.log
+.DS_Store
+Thumbs.db

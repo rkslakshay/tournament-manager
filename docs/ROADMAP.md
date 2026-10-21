@@ -83,7 +83,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 ### 7A. Independent verification
 
 - [x] 7.1 Clean-state run: install, lint, typecheck, unit tests, coverage, full Playwright suite; record real numbers
-- [ ] 7.2 Secrets and junk audit (gitignore, no tokens or personal data, no large or generated files)
+- [x] 7.2 Secrets and junk audit (gitignore, no tokens or personal data, no large or generated files)
 - [ ] 7.3 Skeptical engine review: edge cases (2/3/5/17/128 teams, duplicate seeds, all draws, 3- and 4-way cycles, deep double-elimination edits)
 
 ### 7B. Close known gaps

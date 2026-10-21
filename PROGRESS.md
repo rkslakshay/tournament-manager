@@ -45,6 +45,16 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 20:40: Task 7.2: Secrets and junk audit
+
+- Checked:
+  - Tracked files for `.env`, `*.db`, build, coverage and test output: none tracked. The full history also never contained `.env` or `*.db` files.
+  - Secret patterns (GitHub tokens, OpenAI-style keys, AWS keys, private keys, credentialed Postgres URLs, `password=`): no matches.
+  - Personal data (account name, email): none in tracked files.
+  - Largest tracked file: `package-lock.json` at 308 KB; everything else is under 60 KB.
+- `.env.example` contains only the SQLite path and commented placeholders. Admin tokens printed by the seed script and saved during manual testing live only in the ignored `.tmp/` and the terminal.
+- Fixed: `.gitignore` used trailing-slash directory patterns, which only match once the directory exists (`git check-ignore playwright-report` reported NOT-IGNORED). It is rewritten with slash-agnostic patterns, plus `.vercel`, `.env.*.local`, `*.log` and OS files.
+
 ## 2026-10-21 20:30: Task 7.1: Independent clean-state verification
 
 - Method: fresh `git clone` into a scratch directory, `npm ci` (463 packages, 31 s), `cp .env.example .env`, `prisma migrate deploy`, then every check. Nothing reused from the working copy.

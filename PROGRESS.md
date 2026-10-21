@@ -45,6 +45,15 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-22 03:40: Task 7.13: Available tooling
+
+- `git remote -v`: no remote configured.
+- `gh auth status`: logged in as `rkslakshay` (keyring), scopes `repo`, `workflow`, `gist`, `read:org`. `rkslakshay/tournament-manager` does not exist yet.
+- `npx vercel whoami`: **logged out**.
+- Docker: not installed.
+- Environment: no `DATABASE_URL`/`DIRECT_URL` for Postgres, no Neon, Vercel or Redis variables.
+- Consequences: 7.14 (GitHub publish) can proceed. 7.15 (deploy) cannot: it needs a Vercel login and a Postgres connection string, and no credentials will be invented. Logged for NEEDS_YOU.md.
+
 ## 2026-10-22 03:30: Task 7.12: README polish
 
 - README rewritten against the final code:

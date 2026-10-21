@@ -106,7 +106,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 
 ### 7E. Deployment and publishing
 
-- [ ] 7.13 Check available tooling (git remote, gh, vercel, docker)
+- [x] 7.13 Check available tooling (git remote, gh, vercel, docker)
 - [ ] 7.14 Publish to GitHub (if gh is authenticated), after re-running the secrets audit
 - [ ] 7.15 Deploy to Vercel (if authenticated and a Postgres URL is available)
 - [ ] 7.16 NEEDS_YOU.md with remaining manual steps

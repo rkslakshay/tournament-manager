@@ -45,6 +45,17 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-22 03:10: Task 7.11: Demo GIF
+
+- `npm run demo-gif` (`scripts/record-demo.mjs`) records `docs/demo.gif` (11 frames, 289 KB, 1288×520):
+  - An organizer (left) creates "Friday Five-a-side Cup" in the wizard, adds 4 teams, starts it and enters both semi-finals.
+  - A viewer (right) has the public page open the whole time and sees teams, the bracket and each result appear without reloading.
+  - Each step is a side-by-side frame composited with `pngjs` and encoded with `gifenc`. `-- --frames` also dumps PNG frames to `.tmp/demo-frames/` for review. Embedded at the top of the README.
+- Refactor: the seeded production server setup is shared by the screenshot and GIF scripts (`scripts/demo-server.mjs`); admin links stay in memory and are never printed.
+- **UX bug found while reviewing the frames, and fixed:** a viewer who opened the public page before the start stayed on "Fixtures" after the tournament went live, because the default tab was decided once at first render, when there were no stages. The page now follows the best default (Standings, else Bracket, else Fixtures) until the viewer picks a tab. Screenshots were regenerated afterwards.
+- Dependencies (dev): `gifenc` (small pure-JS GIF encoder; no ffmpeg needed) and `pngjs` (decode and composite Playwright screenshots).
+- 304 unit/integration tests; E2E 10/10.
+
 ## 2026-10-22 02:30: Task 7.10: Screenshots
 
 - `npm run screenshots` (`scripts/capture-screenshots.mjs`) regenerates `docs/screenshots/*.png` reproducibly:

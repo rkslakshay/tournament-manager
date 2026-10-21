@@ -101,7 +101,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 ### 7D. Presentation assets
 
 - [x] 7.10 Playwright screenshots into docs/screenshots and README
-- [ ] 7.11 Demo GIF or frame sequence (if practical)
+- [x] 7.11 Demo GIF or frame sequence (if practical)
 - [ ] 7.12 README polish, accurate against the final code
 
 ### 7E. Deployment and publishing

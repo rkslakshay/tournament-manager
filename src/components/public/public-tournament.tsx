@@ -85,9 +85,11 @@ export function PublicTournament({ initialView }: { initialView: PublicView }) {
       ),
     });
   }
-  const [active, setActive] = useState(
-    leagueStages.length > 0 ? "standings" : knockoutStages.length > 0 ? "bracket" : "fixtures",
-  );
+  // Follow the best default (which changes when the tournament starts) until the viewer picks a tab.
+  const [picked, setPicked] = useState<string | null>(null);
+  const active =
+    picked ??
+    (leagueStages.length > 0 ? "standings" : knockoutStages.length > 0 ? "bracket" : "fixtures");
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
@@ -118,7 +120,7 @@ export function PublicTournament({ initialView }: { initialView: PublicView }) {
         {view.stages.length === 0 ? (
           <Upcoming view={view} />
         ) : (
-          <Tabs label="Tournament sections" tabs={tabs} active={active} onChange={setActive} />
+          <Tabs label="Tournament sections" tabs={tabs} active={active} onChange={setPicked} />
         )}
       </div>
     </div>

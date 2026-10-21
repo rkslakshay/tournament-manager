@@ -7,6 +7,8 @@ and every tournament has a public page that updates live for players and fans.
 **Live demo:** _deploy link goes here_ (see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)). Locally, run
 `npm run db:seed` and open `/t/demo-league`, `/t/demo-cup` or `/t/demo-world-cup`.
 
+![Demo: an organizer enters results on the left while the public page updates live on the right](docs/demo.gif)
+
 ![Group standings with qualification places](docs/screenshots/standings.png)
 
 | Knockout bracket                                  | Double elimination                                                     |

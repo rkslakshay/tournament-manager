@@ -23,7 +23,8 @@
     "db:pg:deploy": "prisma migrate deploy --schema prisma/postgres/schema.prisma",
     "build:prod": "npm run db:pg:generate && npm run db:pg:deploy && next build",
     "test:pg": "node scripts/test-postgres.mjs",
-    "screenshots": "node scripts/capture-screenshots.mjs"
+    "screenshots": "node scripts/capture-screenshots.mjs",
+    "demo-gif": "node scripts/record-demo.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -46,7 +47,9 @@
     "eslint-config-next": "^15.5.28",
     "eslint-config-prettier": "^10.1.8",
     "fast-check": "^4.10.2",
+    "gifenc": "^1.0.3",
     "ioredis-mock": "^8.13.1",
+    "pngjs": "^7.0.0",
     "prettier": "^3.9.10",
     "prisma": "^6.19.3",
     "tailwindcss": "^4.3.3",

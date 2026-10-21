@@ -11,6 +11,20 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 18:30: Task 6.1: Seed script with three demo tournaments
+
+- `src/server/seed.ts` (`seedDemo(db)`) builds the demo tournaments linked from the landing page through the real services, so propagation, standings and versions are exactly what users get:
+  - `demo-league`: 8-team round robin, 20 results, one match live.
+  - `demo-cup`: 12-team single elimination with a third-place match, 4 byes for the top seeds, 6 results, one match live.
+  - `demo-world-cup`: 16 teams in 4 groups of 4, top 2 advance; all 24 group matches and the 4 quarter-finals played, semi-finals ready.
+  - All three are auto-scheduled across two fields.
+- Scores come from the seeded PRNG, so every run is identical. Knockout draws are nudged into a winner. Re-running deletes earlier demo copies first (idempotent). Fixed slugs are set after creation; admin tokens are random each run and printed by `npm run db:seed`.
+- `prisma/seed.ts` now calls `seedDemo` and prints the public and admin links, replacing the 0.3 stub.
+- Found while testing: playing the earliest-scheduled match first meant a knockout tie could be played as soon as its two groups ended, before other groups (correct scheduler behaviour, odd for a demo). The seed now plays league stages first, then knockout rounds in order.
+- Verified: `npm run db:seed` populates the dev DB and `/t/demo-world-cup` shows the bracket with quarter-finals played.
+- Tests: 2 new, 227 total (shapes of all three demos, repeatability).
+- Next task: 6.2 PostgreSQL for production.
+
 ## 2026-10-21 17:50: Gate 5: passed
 
 - `e2e/realtime.spec.ts` uses two isolated browser contexts, an organizer and a viewer.

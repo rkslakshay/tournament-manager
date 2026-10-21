@@ -11,6 +11,25 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 08:00: Gate 1: passed
+
+- 108 tests pass (all property tests included). Engine coverage: 100% statements, lines and functions; 96.96% branches. The 90% threshold is enforced by `npm run test:cov`. Lint and typecheck are clean.
+- Next task: 2.1 DB client, repositories, test DB helper.
+
+## 2026-10-21 08:00: Task 1.10: Double elimination
+
+- `generateDoubleElimination(teams, { idPrefix, stageId, grandFinalReset })`:
+  - The winners bracket (`w{r}m{p}`) reuses `buildBracketRounds`.
+  - The losers bracket (`l{r}m{p}`) has 2(log2 N - 1) rounds. Round 1 pairs the winners round-one losers, then drop-down and consolidation rounds alternate.
+  - Grand final: `gf1` is the winners champion (home) against the losers champion (away). `gf2` is the reset, played only if the away side wins `gf1` (handled in `propagate`). The reset can be turned off.
+  - With 2 teams, the loser of the only match goes straight to `gf1`.
+- Routing: `losersDropPosition` cycles reverse, swap halves, identity, reverse halves per winners round. A throwaway simulation over 1,200 random brackets (8-64 teams) compared four patterns. Losers-bracket rematch rates: always-reverse 6.9%, reverse/identity 3.7%, reverse/swap 3.8%, the 4-cycle 3.0%. The cycle was chosen. Some rematches are unavoidable in double elimination. The first drop-down round never has one when there are at least 8 slots.
+- Byes need no special code. The loser of a bye is a bye (1.7), so odd team counts flow through the losers bracket.
+- Test fixes (both were test bugs, not implementation bugs):
+  1. The reset scenario kept playing after GF1, so GF2 had been played rather than left SCHEDULED. Assertions now check that GF2 was played and the losers champion won.
+  2. The "no rematch in the first drop-down" property started at 4 teams. A 4-slot bracket has a single drop-down match where that rematch can't be avoided, so the property now starts at 5 teams. The reason is documented in the test.
+- Tests: 13 new, 108 total. Property tests check that every team except the champion is eliminated after exactly 2 losses (with random results, 2-40 teams), the bracket shape (N-1 / N-2 / 2), propagation idempotence throughout, and that seed 1 wins with seed 2 as runner-up when favourites always win.
+
 ## 2026-10-21 07:30: Task 1.9: Scheduler
 
 - `scheduleMatches(matches, { venues, slots, minRestSlots, groupStageIds })` returns `{ assignments, unscheduled }`. Slots are indices 0..slots-1; the service maps them to real times.

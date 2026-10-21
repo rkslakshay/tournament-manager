@@ -105,18 +105,19 @@ Open the public link in another window to watch it update.
 JSON over REST. Write endpoints need `Authorization: Bearer <adminToken>`. Errors look like
 `{ "error": { "code", "message", "details?" } }` with a matching HTTP status.
 
-| Method | Path                                   | Auth                | Purpose                                                                 |
-| ------ | -------------------------------------- | ------------------- | ----------------------------------------------------------------------- |
-| POST   | `/api/tournaments`                     | none (rate-limited) | Create; returns `{ slug, adminToken }`                                  |
-| GET    | `/api/t/:slug`                         | none                | Public view: teams, matches, derived standings                          |
-| GET    | `/api/t/:slug/events`                  | none                | Server-Sent Events: `match_updated`, `tournament_updated`               |
-| POST   | `/api/t/:slug/teams`                   | admin               | Add teams `{ names: [] }`                                               |
-| DELETE | `/api/t/:slug/teams/:teamId`           | admin               | Remove a team (before start)                                            |
-| PUT    | `/api/t/:slug/teams/order`             | admin               | Reseed `{ teamIds: [] }`                                                |
-| POST   | `/api/t/:slug/start`                   | admin               | Generate fixtures and lock teams                                        |
-| PUT    | `/api/t/:slug/matches/:matchId/result` | admin               | Record/edit `{ homeScore, awayScore, expectedVersion?, confirmReset? }` |
-| PUT    | `/api/t/:slug/matches/:matchId/status` | admin               | Mark a match `LIVE` or back to `SCHEDULED`                              |
-| POST   | `/api/t/:slug/schedule`                | admin               | Auto-schedule `{ venues, startTime, slotMinutes, minRestSlots }`        |
+| Method | Path                                    | Auth                | Purpose                                                                   |
+| ------ | --------------------------------------- | ------------------- | ------------------------------------------------------------------------- |
+| POST   | `/api/tournaments`                      | none (rate-limited) | Create; returns `{ slug, adminToken }`                                    |
+| GET    | `/api/t/:slug`                          | none                | Public view: teams, matches, derived standings                            |
+| GET    | `/api/t/:slug/events`                   | none                | Server-Sent Events: `match_updated`, `tournament_updated`                 |
+| POST   | `/api/t/:slug/teams`                    | admin               | Add teams `{ names: [] }`                                                 |
+| DELETE | `/api/t/:slug/teams/:teamId`            | admin               | Remove a team (before start)                                              |
+| PUT    | `/api/t/:slug/teams/order`              | admin               | Reseed `{ teamIds: [] }`                                                  |
+| POST   | `/api/t/:slug/start`                    | admin               | Generate fixtures and lock teams                                          |
+| PUT    | `/api/t/:slug/matches/:matchId/result`  | admin               | Record/edit `{ homeScore, awayScore, expectedVersion?, confirmReset? }`   |
+| PUT    | `/api/t/:slug/matches/:matchId/status`  | admin               | Mark a match `LIVE` or back to `SCHEDULED`                                |
+| PUT    | `/api/t/:slug/matches/:matchId/forfeit` | admin               | `{ teamId }` forfeits; the opponent wins by walkover (configurable score) |
+| POST   | `/api/t/:slug/schedule`                 | admin               | Auto-schedule `{ venues, startTime, slotMinutes, minRestSlots }`          |
 
 ## Testing
 
@@ -151,7 +152,7 @@ JSON over REST. Write endpoints need `Authorization: Bearer <adminToken>`. Error
   server instances (see the serverless notes in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)).
 - Swiss-system pairing, CSV export, and accounts with a "my tournaments" dashboard (the Stretch
   roadmap).
-- A forfeit action that awards walkovers for all of a team's remaining matches.
+- A one-click "withdraw team" that awards walkovers for all of a team's remaining matches (today each forfeit is recorded per match).
 - Penalty shoot-out scores for knockout draws.
 - Live scores during a match, not just a live flag.
 

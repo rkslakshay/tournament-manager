@@ -89,7 +89,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 ### 7B. Close known gaps
 
 - [x] 7.4 Verify PostgreSQL for real (Docker, else embedded-postgres) and run integration tests against it
-- [ ] 7.5 Forfeit / walkover action (service, route, UI, schema, tests, DESIGN.md)
+- [x] 7.5 Forfeit / walkover action (service, route, UI, schema, tests, DESIGN.md)
 - [ ] 7.6 Knockout draws via extra-time/penalties winner (decidedBy: REGULAR | EXTRA_TIME | PENALTIES)
 
 ### 7C. Stretch features

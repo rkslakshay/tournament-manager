@@ -95,6 +95,7 @@ function toPublicMatch(m: StoredMatch): PublicMatch {
     homeScore: m.homeScore,
     awayScore: m.awayScore,
     winnerTeamId: m.winnerTeamId,
+    decidedBy: m.decidedBy,
     scheduledAt: m.scheduledAt?.toISOString() ?? null,
     venueId: m.venueId,
     version: m.version,

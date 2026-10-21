@@ -77,6 +77,8 @@ model Match {
   homeScore    Int?
   awayScore    Int?
   winnerTeamId String?
+  /// How a finished result was decided: REGULAR | EXTRA_TIME | PENALTIES | WALKOVER. Null without a result.
+  decidedBy    String?
   scheduledAt  DateTime?
   venueId      String?
   venue        Venue?    @relation(fields: [venueId], references: [id], onDelete: SetNull)

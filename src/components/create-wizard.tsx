@@ -11,6 +11,7 @@ import { FORMAT_LABELS, FORMATS, type Format } from "@/lib/tournament-config";
 import {
   adminUrl,
   buildCreateRequest,
+  defaultWalkoverScore,
   DEFAULT_WIZARD_FORM,
   usesLeagueRules,
   type WizardForm,
@@ -274,6 +275,11 @@ export function CreateWizard() {
             <dd>{form.sport}</dd>
             <dt className="text-slate-500">Format</dt>
             <dd>{FORMAT_LABELS[form.format]}</dd>
+            <dt className="text-slate-500">Forfeits</dt>
+            <dd>
+              Walkover counts as {defaultWalkoverScore(form.sport).winner}–
+              {defaultWalkoverScore(form.sport).loser}
+            </dd>
             {usesLeagueRules(form.format) && (
               <>
                 <dt className="text-slate-500">Points</dt>

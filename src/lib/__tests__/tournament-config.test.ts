@@ -21,6 +21,7 @@ describe("parseTournamentConfig", () => {
       thirdPlaceMatch: false,
       grandFinalReset: true,
       editPolicy: "RESET_DOWNSTREAM",
+      walkoverScore: { winner: 3, loser: 0 },
     });
   });
 

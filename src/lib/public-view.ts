@@ -6,6 +6,7 @@ import type {
   StandingRow,
   TeamId,
 } from "@/engine/types";
+import type { DecidedBy } from "./api-schemas";
 import type { Format, TournamentStatus } from "./tournament-config";
 
 /** Everything a viewer needs, safe to expose publicly (no admin token or hash). */
@@ -65,6 +66,8 @@ export interface PublicMatch {
   homeScore: number | null;
   awayScore: number | null;
   winnerTeamId: TeamId | null;
+  /** How the result was decided; null until there is a result. */
+  decidedBy: DecidedBy | null;
   scheduledAt: string | null;
   venueId: string | null;
   version: number;

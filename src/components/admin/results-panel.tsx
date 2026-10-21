@@ -18,10 +18,13 @@ import {
 } from "@/lib/view-model";
 import type { AdminActions } from "./admin-app";
 
+/** What the organizer is saving for a match. */
+export type Submission =
+  { kind: "result"; homeScore: number; awayScore: number } | { kind: "forfeit"; teamId: string };
+
 interface PendingEdit {
   match: PublicMatch;
-  homeScore: number;
-  awayScore: number;
+  submission: Submission;
   invalidated: string[];
 }
 
@@ -30,6 +33,7 @@ export function ResultsPanel({ view, actions }: { view: PublicView; actions: Adm
   const index = useMemo(() => indexMatches(view), [view]);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingEdit | null>(null);
+  const [forfeiting, setForfeiting] = useState<{ match: PublicMatch; teamId: string } | null>(null);
 
   async function toggleLive(match: PublicMatch) {
     const live = match.status === "LIVE";
@@ -43,41 +47,38 @@ export function ResultsPanel({ view, actions }: { view: PublicView; actions: Adm
     );
   }
 
-  async function save(
-    match: PublicMatch,
-    homeScore: number,
-    awayScore: number,
-    confirmReset = false,
-  ) {
+  async function save(match: PublicMatch, submission: Submission, confirmReset = false) {
     const before = view;
     setSavingId(match.id);
-    actions.setView(withOptimisticResult(view, match.id, homeScore, awayScore));
+    if (submission.kind === "result") {
+      actions.setView(
+        withOptimisticResult(view, match.id, submission.homeScore, submission.awayScore),
+      );
+    }
+    const { kind, ...fields } = submission;
     try {
       const res = await actions.api<{ view: PublicView; resetMatchIds: string[] }>(
-        `matches/${match.id}/result`,
+        `matches/${match.id}/${kind}`,
         {
           method: "PUT",
           body: {
-            homeScore,
-            awayScore,
+            ...fields,
             expectedVersion: match.version,
             confirmReset: confirmReset || undefined,
           },
         },
       );
       actions.setView(res.view);
+      const done = kind === "forfeit" ? "Walkover recorded" : "Result saved";
       const reset = res.resetMatchIds.length;
-      actions.notify(
-        reset > 0 ? `Result saved. ${reset} later result(s) were reset.` : "Result saved",
-      );
+      actions.notify(reset > 0 ? `${done}. ${reset} later result(s) were reset.` : done);
     } catch (error) {
       actions.setView(before);
       if (error instanceof ApiError && error.code === "CONFIRMATION_REQUIRED") {
         const details = error.details as { invalidated?: Array<{ id: string }> } | undefined;
         setPending({
           match,
-          homeScore,
-          awayScore,
+          submission,
           invalidated: (details?.invalidated ?? []).map((m) => m.id),
         });
       } else if (error instanceof ApiError && error.code === "VERSION_CONFLICT") {
@@ -114,7 +115,8 @@ export function ResultsPanel({ view, actions }: { view: PublicView; actions: Adm
                       info={index.get(match.id) as MatchInfo}
                       stage={stage}
                       saving={savingId === match.id}
-                      onSave={(h, a) => save(match, h, a)}
+                      onSave={(h, a) => save(match, { kind: "result", homeScore: h, awayScore: a })}
+                      onForfeit={() => setForfeiting({ match, teamId: match.homeTeamId ?? "" })}
                       onToggleLive={() => toggleLive(match)}
                     />
                   ))}
@@ -134,7 +136,7 @@ export function ResultsPanel({ view, actions }: { view: PublicView; actions: Adm
         onConfirm={() => {
           const edit = pending as PendingEdit;
           setPending(null);
-          void save(edit.match, edit.homeScore, edit.awayScore, true);
+          void save(edit.match, edit.submission, true);
         }}
       >
         <p>
@@ -154,6 +156,39 @@ export function ResultsPanel({ view, actions }: { view: PublicView; actions: Adm
           })}
         </ul>
       </ConfirmDialog>
+
+      <ConfirmDialog
+        open={forfeiting !== null}
+        title="Record a forfeit"
+        confirmLabel="Record walkover"
+        tone="danger"
+        onCancel={() => setForfeiting(null)}
+        onConfirm={() => {
+          const choice = forfeiting as { match: PublicMatch; teamId: string };
+          setForfeiting(null);
+          void save(choice.match, { kind: "forfeit", teamId: choice.teamId });
+        }}
+      >
+        {forfeiting && (
+          <fieldset>
+            <legend className="mb-2">Which team forfeits? The other team wins by walkover.</legend>
+            {[forfeiting.match.homeTeamId, forfeiting.match.awayTeamId].map((teamId) =>
+              teamId === null ? null : (
+                <label key={teamId} className="flex items-center gap-2 py-1">
+                  <input
+                    type="radio"
+                    name="forfeit-team"
+                    checked={forfeiting.teamId === teamId}
+                    onChange={() => setForfeiting({ ...forfeiting, teamId })}
+                    className="accent-accent-600"
+                  />
+                  {view.teams.find((t) => t.id === teamId)?.name ?? teamId} forfeits
+                </label>
+              ),
+            )}
+          </fieldset>
+        )}
+      </ConfirmDialog>
     </div>
   );
 }
@@ -166,9 +201,19 @@ interface RowProps {
   saving: boolean;
   onSave: (homeScore: number, awayScore: number) => void;
   onToggleLive: () => void;
+  onForfeit: () => void;
 }
 
-function ResultRow({ view, index, info, stage, saving, onSave, onToggleLive }: RowProps) {
+function ResultRow({
+  view,
+  index,
+  info,
+  stage,
+  saving,
+  onSave,
+  onToggleLive,
+  onForfeit,
+}: RowProps) {
   const { match } = info;
   const [home, setHome] = useState(match.homeScore?.toString() ?? "");
   const [away, setAway] = useState(match.awayScore?.toString() ?? "");
@@ -224,6 +269,11 @@ function ResultRow({ view, index, info, stage, saving, onSave, onToggleLive }: R
         <div className="col-span-full flex items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
           <span>
             {info.label}
+            {match.decidedBy === "WALKOVER" && (
+              <span className="ml-2 font-semibold">
+                <abbr title="Walkover">W/O</abbr>
+              </span>
+            )}
             {match.status === "LIVE" && (
               <span className="ml-2 inline-flex items-center gap-1 font-semibold text-accent-700 dark:text-accent-500">
                 <span aria-hidden className="h-2 w-2 animate-pulse rounded-full bg-accent-600" />
@@ -231,16 +281,26 @@ function ResultRow({ view, index, info, stage, saving, onSave, onToggleLive }: R
               </span>
             )}
           </span>
-          {!done && (
+          <span className="flex gap-1">
+            {!done && (
+              <button
+                type="button"
+                onClick={onToggleLive}
+                disabled={saving}
+                className="rounded px-2 py-0.5 font-medium text-accent-700 hover:bg-accent-50 dark:text-accent-500 dark:hover:bg-slate-800"
+              >
+                {match.status === "LIVE" ? "End live" : "Mark live"}
+              </button>
+            )}
             <button
               type="button"
-              onClick={onToggleLive}
+              onClick={onForfeit}
               disabled={saving}
-              className="rounded px-2 py-0.5 font-medium text-accent-700 hover:bg-accent-50 dark:text-accent-500 dark:hover:bg-slate-800"
+              className="rounded px-2 py-0.5 font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
             >
-              {match.status === "LIVE" ? "End live" : "Mark live"}
+              Forfeit…
             </button>
-          )}
+          </span>
         </div>
         <span
           className={`truncate text-right ${done && match.winnerTeamId === match.homeTeamId ? "font-bold" : ""}`}

@@ -45,6 +45,18 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 22:30: Task 7.5: Forfeit / walkover
+
+- Schema: new nullable `Match.decidedBy` (`REGULAR | WALKOVER`; 7.6 adds extra time and penalties). SQLite migration `*_match_decided_by` via `migrate dev`. The Postgres migration `20261021100000_match_decided_by` was generated offline by diffing the previous generated schema against the new one.
+- Config: `walkoverScore { winner, loser }`, default 3-0, validated (winner > loser).
+  - Assumption for "or 1-0 by sport": the wizard sets 1-0 for game-scored sports (chess, tennis, table tennis, badminton, squash, esports) and 3-0 otherwise (`defaultWalkoverScore`, tested). The review step shows it.
+- Service: `recordResult` and the new `forfeitMatch` now share one `applyResult` core (the same transaction, propagation, edit policy, version checks and events). A forfeit is stored as an ordinary result with `decidedBy: WALKOVER`. Standings, bracket advancement, champion detection and the reset confirmation all work unchanged, and the engine needed no change.
+- Correctness detail: the persistence mapper clears `decidedBy` whenever the score is cleared, so propagation-reset matches never keep a stale walkover marker. `decidedBy` is part of change detection.
+- Route: `PUT /api/t/:slug/matches/:matchId/forfeit` (admin, zod `forfeitBody { teamId, expectedVersion?, confirmReset? }`). Added to the route inventory, the auth-guard test, the README API table and DESIGN.md.
+- UI: a "Forfeit…" button on every playable admin row opens a dialog to pick which team forfeits; it uses the same confirmation flow. Admin rows and public match cards show `W/O` (`<abbr title="Walkover">`).
+- Tests (all written before the service): 6 service tests (default 3-0 counted in standings, configured 1-0, bracket propagation, edit policy plus reset clearing `decidedBy`, a regular result replacing a walkover, invalid team/bye/stale version), 2 route tests, a wizard test, and updated config-default and repository round-trip expectations for the new field. **264 tests passing.**
+- BLOCKERS 2.3 is marked resolved.
+
 ## 2026-10-21 21:40: Task 7.4: PostgreSQL verified for real
 
 - Docker: not installed on this machine (`docker: command not found`), so the second option was used.

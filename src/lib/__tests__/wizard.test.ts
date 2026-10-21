@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { adminUrl, buildCreateRequest, DEFAULT_WIZARD_FORM, usesLeagueRules } from "@/lib/wizard";
+import {
+  adminUrl,
+  buildCreateRequest,
+  defaultWalkoverScore,
+  DEFAULT_WIZARD_FORM,
+  usesLeagueRules,
+} from "@/lib/wizard";
 
 const base = { ...DEFAULT_WIZARD_FORM, name: "Cup", sport: "Chess" };
 
@@ -53,5 +59,16 @@ describe("helpers", () => {
     expect(adminUrl("https://x.test", "cup-1", "a+b/c")).toBe(
       "https://x.test/t/cup-1/admin?token=a%2Bb%2Fc",
     );
+  });
+});
+
+describe("defaultWalkoverScore", () => {
+  it("is 1-0 for game-scored sports and 3-0 otherwise, and lands in the request", () => {
+    expect(defaultWalkoverScore(" Chess ")).toEqual({ winner: 1, loser: 0 });
+    expect(defaultWalkoverScore("Football")).toEqual({ winner: 3, loser: 0 });
+    expect(buildCreateRequest({ ...base, sport: "Table tennis" })).toMatchObject({
+      ok: true,
+      body: { config: { walkoverScore: { winner: 1, loser: 0 } } },
+    });
   });
 });

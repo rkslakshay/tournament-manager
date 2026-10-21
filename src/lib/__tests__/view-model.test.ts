@@ -48,7 +48,13 @@ function viewFor(input: TournamentConfigInput, teamCount: number): PublicView {
     stages: plan.stages.map((s) => ({
       ...s,
       standings: null,
-      matches: s.matches.map((m) => ({ ...m, scheduledAt: null, venueId: null, version: 0 })),
+      matches: s.matches.map((m) => ({
+        ...m,
+        decidedBy: null,
+        scheduledAt: null,
+        venueId: null,
+        version: 0,
+      })),
     })),
     championTeamId: null,
   };

@@ -62,6 +62,13 @@ function StatusLabel({ match, walkover }: { match: PublicMatch; walkover: boolea
     );
   }
   if (walkover) return <span>{match.winnerTeamId ? "Bye" : "Not needed"}</span>;
+  if (match.decidedBy === "WALKOVER") {
+    return (
+      <span>
+        <abbr title="Walkover: the opponent forfeited">W/O</abbr>
+      </span>
+    );
+  }
   if (match.status === "FINISHED") return <span>FT</span>;
   return null;
 }

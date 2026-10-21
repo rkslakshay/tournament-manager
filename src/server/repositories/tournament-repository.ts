@@ -7,6 +7,7 @@ import type {
 } from "@prisma/client";
 import { z } from "zod";
 import type { BracketSide, Match, MatchStatus, Source, StageType, Team } from "@/engine/types";
+import type { DecidedBy } from "@/lib/api-schemas";
 import {
   parseTournamentConfig,
   type TournamentConfig,
@@ -27,6 +28,8 @@ export interface TournamentRecord {
 
 /** An engine match plus the persistence-only fields. */
 export interface StoredMatch extends Match {
+  /** How the result was decided (null without a result). Not needed by the engine. */
+  decidedBy: DecidedBy | null;
   version: number;
   scheduledAt: Date | null;
   venueId: string | null;
@@ -89,6 +92,7 @@ export function toStoredMatch(row: MatchRow): StoredMatch {
     homeScore: row.homeScore,
     awayScore: row.awayScore,
     winnerTeamId: row.winnerTeamId,
+    decidedBy: row.decidedBy as DecidedBy | null,
     version: row.version,
     scheduledAt: row.scheduledAt,
     venueId: row.venueId,
@@ -124,8 +128,13 @@ export function toMatchCreateData(match: Match): Prisma.MatchCreateManyInput {
   };
 }
 
-/** Prisma data for the result-related fields of an existing match. */
-export function toMatchResultData(match: Match): Prisma.MatchUpdateManyMutationInput {
+/**
+ * Prisma data for the result-related fields of an existing match. A match without a result
+ * (for example one that propagation just reset) never keeps a `decidedBy`.
+ */
+export function toMatchResultData(
+  match: Match & { decidedBy?: DecidedBy | null },
+): Prisma.MatchUpdateManyMutationInput {
   return {
     homeTeamId: match.homeTeamId,
     awayTeamId: match.awayTeamId,
@@ -133,6 +142,7 @@ export function toMatchResultData(match: Match): Prisma.MatchUpdateManyMutationI
     homeScore: match.homeScore,
     awayScore: match.awayScore,
     winnerTeamId: match.winnerTeamId,
+    decidedBy: match.homeScore === null ? null : (match.decidedBy ?? "REGULAR"),
   };
 }
 

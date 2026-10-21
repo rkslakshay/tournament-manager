@@ -59,10 +59,12 @@ describe("tournament repository", () => {
     });
     expect(aggregate.teams.map((x) => x.name)).toEqual(["Ants", "Bees", "Cats"]);
     expect(aggregate.stages).toHaveLength(1);
-    const stored = aggregate.stages[0]!.matches.map(({ version, scheduledAt, venueId, ...m }) => {
-      expect([version, scheduledAt, venueId]).toEqual([0, null, null]);
-      return m;
-    });
+    const stored = aggregate.stages[0]!.matches.map(
+      ({ version, scheduledAt, venueId, decidedBy, ...m }) => {
+        expect([version, scheduledAt, venueId, decidedBy]).toEqual([0, null, null, null]);
+        return m;
+      },
+    );
     expect(stored).toEqual(matches);
     expect(aggregate.stages[0]!.groupLabel).toBeNull();
   });

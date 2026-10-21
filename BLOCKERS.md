@@ -9,9 +9,11 @@ Log anything that needs a human decision or that failed after 3 serious attempts
 - What was done instead (skipped, simplified, assumption made)
 ```
 
-## Task 2.3: Forfeit after start (product decision, non-blocking)
+## Task 2.3: Forfeit after start (RESOLVED in 7.5: per-match forfeit with walkover score)
+
 - DESIGN.md says removing a team after start is not allowed and suggests offering a forfeit (the opponent gets a walkover). There is no roadmap task for a dedicated forfeit feature.
 - Done instead: removal after start is refused with a message pointing to forfeits. Organizers can record a walkover as a normal result (for example 3-0). A dedicated "forfeit team" action, which would auto-lose all of a team's remaining matches, needs a decision on scoring (fixed walkover score per sport?) and is left for a human.
 
 ## Task 6.2: PostgreSQL not exercised against a live server (RESOLVED in 7.4)
+
 - Resolved on 2026-10-21: `npm run test:pg` starts a real PostgreSQL 17 (embedded-postgres), runs `prisma migrate deploy` with the production migration, and passes all 96 server integration tests against it. No incompatibilities were found.

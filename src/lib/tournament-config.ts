@@ -56,6 +56,11 @@ export const tournamentConfigSchema = z
     groups: z.number().int().min(1).max(32).optional(),
     advancePerGroup: z.number().int().min(1).max(8).optional(),
     editPolicy: z.enum(EDIT_POLICIES).default("RESET_DOWNSTREAM"),
+    /** Score awarded when a team forfeits a match (winner–loser). */
+    walkoverScore: z
+      .object({ winner: z.number().int().min(1).max(99), loser: z.number().int().min(0).max(98) })
+      .refine((s) => s.winner > s.loser, "The winner must score more than the loser")
+      .default({ winner: 3, loser: 0 }),
   })
   .refine(
     (c) =>

@@ -32,6 +32,28 @@ export const DEFAULT_WIZARD_FORM: WizardForm = {
   editPolicy: "RESET_DOWNSTREAM",
 };
 
+/** Sports scored in games or frames, where a forfeit is recorded as 1-0 rather than 3-0. */
+const ONE_NIL_WALKOVER_SPORTS = [
+  "chess",
+  "tennis",
+  "table tennis",
+  "badminton",
+  "esports",
+  "squash",
+];
+
+/**
+ * Default walkover score for a sport: 1-0 for game-scored sports, 3-0 otherwise.
+ *
+ * @example
+ * defaultWalkoverScore("Chess"); // { winner: 1, loser: 0 }
+ */
+export function defaultWalkoverScore(sport: string): { winner: number; loser: number } {
+  return ONE_NIL_WALKOVER_SPORTS.includes(sport.trim().toLowerCase())
+    ? { winner: 1, loser: 0 }
+    : { winner: 3, loser: 0 };
+}
+
 /** Formats with league tables, which use points and legs. */
 export function usesLeagueRules(format: Format): boolean {
   return format === "ROUND_ROBIN" || format === "GROUP_KNOCKOUT";
@@ -55,6 +77,7 @@ export function buildCreateRequest(
     config: {
       format: form.format,
       editPolicy: form.editPolicy,
+      walkoverScore: defaultWalkoverScore(form.sport),
       ...(league && {
         legs: form.legs,
         pointsForWin: form.pointsForWin,

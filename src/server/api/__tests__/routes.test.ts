@@ -9,6 +9,7 @@ import { PUT as reorderRoute } from "@/app/api/t/[slug]/teams/order/route";
 import { POST as startRoute } from "@/app/api/t/[slug]/start/route";
 import { PUT as resultRoute } from "@/app/api/t/[slug]/matches/[matchId]/result/route";
 import { POST as scheduleRoute } from "@/app/api/t/[slug]/schedule/route";
+import { PUT as forfeitRoute } from "@/app/api/t/[slug]/matches/[matchId]/forfeit/route";
 import { PUT as statusRoute } from "@/app/api/t/[slug]/matches/[matchId]/status/route";
 import type { PublicTeam, PublicView } from "@/lib/public-view";
 import type { TestDb } from "@/server/__tests__/test-db";
@@ -24,6 +25,7 @@ const TESTED_ROUTES = [
   "t/[slug]/start/route.ts",
   "t/[slug]/matches/[matchId]/result/route.ts",
   "t/[slug]/matches/[matchId]/status/route.ts",
+  "t/[slug]/matches/[matchId]/forfeit/route.ts",
   "t/[slug]/schedule/route.ts",
   // Covered in events-route.test.ts.
   "t/[slug]/events/route.ts",
@@ -192,8 +194,9 @@ describe("admin authentication", () => {
       ),
       scheduleRoute(request("POST", { body: {}, ip }), ctx({ slug })),
       statusRoute(request("PUT", { body: { status: "LIVE" }, ip }), ctx({ slug, matchId: "x" })),
+      forfeitRoute(request("PUT", { body: { teamId: "x" }, ip }), ctx({ slug, matchId: "x" })),
     ]);
-    expect(responses.map((r) => r.status)).toEqual([401, 401, 401, 401, 401, 401]);
+    expect(responses.map((r) => r.status)).toEqual([401, 401, 401, 401, 401, 401, 401]);
   });
 });
 
@@ -440,6 +443,45 @@ describe("PUT /api/t/:slug/matches/:matchId/status", () => {
     expect(await errorOf(await put({ status: "LIVE" }))).toEqual({
       status: 409,
       code: "INVALID_STATE",
+    });
+  });
+});
+
+describe("PUT /api/t/:slug/matches/:matchId/forfeit", () => {
+  it("awards a walkover to the opponent and returns the updated view", async () => {
+    const { slug, adminToken, view } = await started(["A", "B"], "SINGLE_ELIM");
+    const match = view.stages[0]!.matches[0]!;
+    const res = await forfeitRoute(
+      request("PUT", {
+        body: { teamId: match.homeTeamId, expectedVersion: match.version },
+        token: adminToken,
+        ip,
+      }),
+      ctx({ slug, matchId: match.id }),
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { status: string; view: PublicView };
+    expect(body.status).toBe("COMPLETED");
+    expect(body.view.stages[0]!.matches[0]).toMatchObject({
+      homeScore: 0,
+      awayScore: 3,
+      decidedBy: "WALKOVER",
+    });
+    expect(body.view.championTeamId).toBe(match.awayTeamId);
+  });
+
+  it("rejects bodies without a team and teams outside the match", async () => {
+    const { slug, adminToken, view } = await started(["A", "B"]);
+    const match = view.stages[0]!.matches[0]!;
+    const put = (body: unknown) =>
+      forfeitRoute(
+        request("PUT", { body, token: adminToken, ip }),
+        ctx({ slug, matchId: match.id }),
+      );
+    expect(await errorOf(await put({}))).toEqual({ status: 400, code: "VALIDATION" });
+    expect(await errorOf(await put({ teamId: "someone-else" }))).toEqual({
+      status: 400,
+      code: "VALIDATION",
     });
   });
 });

@@ -1,4 +1,10 @@
-import { resultBody, type ResultBody } from "@/lib/api-schemas";
+import {
+  forfeitBody,
+  resultBody,
+  type DecidedBy,
+  type ForfeitBody,
+  type ResultBody,
+} from "@/lib/api-schemas";
 import { resolveGroupRankings } from "@/engine/group-knockout";
 import { isBye } from "@/engine/match";
 import { propagate } from "@/engine/propagation";
@@ -6,6 +12,7 @@ import type { Match, MatchId, Stage } from "@/engine/types";
 import {
   isLeagueStageType,
   standingsConfigOf,
+  type TournamentConfig,
   type TournamentStatus,
 } from "@/lib/tournament-config";
 import type { Db, Tx } from "../db";
@@ -16,6 +23,7 @@ import {
   loadAggregate,
   toMatchResultData,
   type StoredMatch,
+  type StoredStage,
   type TournamentAggregate,
 } from "../repositories/tournament-repository";
 
@@ -37,6 +45,20 @@ export interface ResultOutcome {
 }
 
 const RESULT_STATES: readonly TournamentStatus[] = ["IN_PROGRESS", "COMPLETED"];
+
+/** The decided outcome of one match, computed once the match and its stage are loaded. */
+interface Outcome {
+  homeScore: number;
+  awayScore: number;
+  winnerTeamId: string | null;
+  decidedBy: DecidedBy;
+}
+
+interface ApplyOptions {
+  expectedVersion?: number;
+  confirmReset?: boolean;
+  decide: (match: StoredMatch, stage: StoredStage, config: TournamentConfig) => Outcome;
+}
 
 /**
  * Record a new result or edit an existing one.
@@ -62,6 +84,65 @@ export async function recordResult(
     throw new ServiceError("VALIDATION", "Invalid score", parsed.error.flatten());
   const { homeScore, awayScore, confirmReset, expectedVersion } = parsed.data;
 
+  return applyResult(db, tournamentId, matchId, {
+    expectedVersion,
+    confirmReset,
+    decide: (match, stage) => {
+      if (homeScore === awayScore && !isLeagueStageType(stage.type)) {
+        throw new ServiceError(
+          "VALIDATION",
+          "Knockout matches need a winner: draws are not allowed",
+        );
+      }
+      const winnerTeamId =
+        homeScore > awayScore ? match.homeTeamId : awayScore > homeScore ? match.awayTeamId : null;
+      return { homeScore, awayScore, winnerTeamId, decidedBy: "REGULAR" };
+    },
+  });
+}
+
+/**
+ * Record a forfeit: `teamId` gives up the match and the opponent wins by walkover with the
+ * tournament's walkover score (3-0 by default). It is stored as an ordinary result marked
+ * `WALKOVER`, so standings and brackets treat it exactly like a played match, and edits follow
+ * the same edit policy.
+ */
+export async function forfeitMatch(
+  db: Db,
+  tournamentId: string,
+  matchId: MatchId,
+  input: ForfeitBody,
+): Promise<ResultOutcome> {
+  const parsed = forfeitBody.safeParse(input);
+  if (!parsed.success)
+    throw new ServiceError("VALIDATION", "Invalid forfeit", parsed.error.flatten());
+  const { teamId, confirmReset, expectedVersion } = parsed.data;
+
+  return applyResult(db, tournamentId, matchId, {
+    expectedVersion,
+    confirmReset,
+    decide: (match, _stage, config) => {
+      if (teamId !== match.homeTeamId && teamId !== match.awayTeamId) {
+        throw new ServiceError("VALIDATION", "That team is not playing in this match");
+      }
+      const { winner, loser } = config.walkoverScore;
+      const homeForfeits = teamId === match.homeTeamId;
+      return {
+        homeScore: homeForfeits ? loser : winner,
+        awayScore: homeForfeits ? winner : loser,
+        winnerTeamId: homeForfeits ? match.awayTeamId : match.homeTeamId,
+        decidedBy: "WALKOVER",
+      };
+    },
+  });
+}
+
+async function applyResult(
+  db: Db,
+  tournamentId: string,
+  matchId: MatchId,
+  options: ApplyOptions,
+): Promise<ResultOutcome> {
   const { slug, outcome } = await db.$transaction(async (tx) => {
     const aggregate = await loadAggregate(tx, tournamentId);
     const { tournament } = aggregate;
@@ -74,19 +155,13 @@ export async function recordResult(
     const stage = aggregate.stages.find((s) => s.matches.some((m) => m.id === matchId));
     const match = stage?.matches.find((m) => m.id === matchId);
     if (!stage || !match) throw new ServiceError("NOT_FOUND", "Match not found");
-    assertCurrentVersion(match, expectedVersion);
+    assertCurrentVersion(match, options.expectedVersion);
     assertScorable(match);
-    if (homeScore === awayScore && !isLeagueStageType(stage.type)) {
-      throw new ServiceError("VALIDATION", "Knockout matches need a winner: draws are not allowed");
-    }
 
     const scored: StoredMatch = {
       ...match,
+      ...options.decide(match, stage, tournament.config),
       status: "FINISHED",
-      homeScore,
-      awayScore,
-      winnerTeamId:
-        homeScore > awayScore ? match.homeTeamId : awayScore > homeScore ? match.awayTeamId : null,
     };
     const before = aggregate.stages.flatMap((s) => s.matches);
     const withScore = before.map((m) => (m.id === matchId ? scored : m));
@@ -94,10 +169,14 @@ export async function recordResult(
       groupRankings: groupRankings(aggregate, withScore),
     });
 
-    if (invalidated.length > 0) enforceEditPolicy(aggregate, invalidated, confirmReset === true);
+    if (invalidated.length > 0) {
+      enforceEditPolicy(aggregate, invalidated, options.confirmReset === true);
+    }
 
     const previous = new Map(before.map((m) => [m.id, m]));
-    const changed = after.filter((m) => resultChanged(previous.get(m.id) as StoredMatch, m));
+    const changed = (after as StoredMatch[]).filter((m) =>
+      resultChanged(previous.get(m.id) as StoredMatch, m),
+    );
     for (const m of changed) {
       // The version condition catches a concurrent write that landed after we loaded the match.
       const { count } = await tx.match.updateMany({
@@ -200,8 +279,9 @@ function enforceEditPolicy(
   }
 }
 
-function resultChanged(before: Match, after: Match): boolean {
+function resultChanged(before: StoredMatch, after: StoredMatch): boolean {
   return (
+    before.decidedBy !== (after.homeScore === null ? null : after.decidedBy) ||
     before.status !== after.status ||
     before.homeTeamId !== after.homeTeamId ||
     before.awayTeamId !== after.awayTeamId ||

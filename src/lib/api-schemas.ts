@@ -46,6 +46,17 @@ export const matchStatusBody = z.object({
   expectedVersion: z.number().int().min(0).optional(),
 });
 
+/** How a finished result was decided. Null on matches without a result. */
+export const DECIDED_BY = ["REGULAR", "WALKOVER"] as const;
+export type DecidedBy = (typeof DECIDED_BY)[number];
+
+/** Record a forfeit: `teamId` gives up the match and the opponent wins by walkover. */
+export const forfeitBody = z.object({
+  teamId: z.string().min(1),
+  confirmReset: z.boolean().optional(),
+  expectedVersion: z.number().int().min(0).optional(),
+});
+
 export type CreateTournamentBody = z.infer<typeof createTournamentBody>;
 export type ResultBody = z.infer<typeof resultBody>;
 export type ScheduleBody = z.infer<typeof scheduleBody>;
@@ -55,3 +66,4 @@ export interface ApiErrorBody {
   error: { code: string; message: string; details?: unknown };
 }
 export type MatchStatusBody = z.infer<typeof matchStatusBody>;
+export type ForfeitBody = z.infer<typeof forfeitBody>;

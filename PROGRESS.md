@@ -45,6 +45,14 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-22 04:50: Task 7.18: Interview notes expanded
+
+- `docs/INTERVIEW_NOTES.md` is now 30 questions in six sections (architecture and design, algorithms, state/concurrency/data, real-time and scaling, security, testing and quality), each with a concise answer pointing at code.
+- It includes a "Did the tests find real bugs?" answer listing the actual bugs found during Phases 4-7.
+- New **Honest limitations** section: not deployed, no load testing, Redis only mock-tested, in-memory rate limiter, Monrad rather than FIDE Dutch Swiss, a greedy scheduler, no accounts or audit log, build-tool audit advisories.
+- Assumption: the notes also recommend being open that the project was built with an AI coding assistant under a spec the author directed, and point to CODE_TOUR and STUDY_GUIDE for learning the code. This is the honest framing, and it protects the user in interviews.
+- Only verified numbers are quoted (304 tests, 144 engine tests, 10/10 E2E, engine 99.9% lines / 96.3% branches).
+
 ## 2026-10-22 04:30: Task 7.17: docs/CODE_TOUR.md
 
 - A beginner-friendly tour of all nine engine areas: round robin, seeding, single elimination, double elimination, groups + knockout, Swiss, standings and tiebreakers, propagation, scheduler. Each covers the problem, the algorithm in plain language, a worked example, the key design decision and its tradeoff, and the files and tests to read. It ends with where the engine meets the services and UI.

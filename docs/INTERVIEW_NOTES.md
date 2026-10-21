@@ -1,120 +1,256 @@
 # Interview notes
 
-Plain-language answers to the questions this project tends to raise. Each points at the code
-that backs it up.
+Likely questions with short, honest answers, and where to point in the code. Numbers come from the
+last verified run: **304 unit and integration tests, 144 of them engine tests, 10/10 Playwright
+runs, engine coverage 99.9% of lines and 96.3% of branches.**
 
-## "Walk me through the architecture."
+## Architecture and design
 
-Four layers, with dependencies pointing inwards:
+**1. Walk me through the architecture.**
 
-1. **Engine** (`src/engine/`): pure TypeScript functions. Given teams and results, they generate
-   fixtures, resolve brackets, compute standings and build schedules. There is no database, no
-   network, no clock, and no randomness without a seed. It could be published as its own package.
-2. **Services** (`src/server/services/`): load from the database, call the engine, write the
-   outcome in one transaction, then tell live viewers something changed.
-3. **API** (`src/app/api/`): thin. Validate input with zod, check the admin token, call a
-   service, map errors to `{ error: { code, message } }`.
-4. **UI**: server-rendered pages that become live client components.
+- Four layers, with dependencies pointing inward.
+  - **Engine** (`src/engine/`): pure TypeScript: fixtures, brackets, standings, Swiss, scheduling.
+  - **Services** (`src/server/services/`): load, call the engine, save in one transaction, notify viewers.
+  - **API** (`src/app/api/`): validate with zod, check the admin token, call a service.
+  - **UI**: Next.js pages.
+- The engine has no database, network, clock or unseeded randomness, so the hard logic is tested
+  with plain function calls.
 
-Keeping the engine pure is the decision I'd defend first. All the hard logic is testable with
-plain function calls, including property-based tests that generate thousands of random
-tournaments.
+**2. Why keep the engine pure?**
 
-## "How do you handle byes?"
+- It makes the hardest code the easiest to test. Property-based tests can run thousands of random
+  tournaments in seconds with no database.
+- It also runs in the browser: the admin page previews fixtures with the same code the server uses
+  (`src/lib/plan-stages.ts`).
 
-- A bracket's size is the next power of two at or above the team count. With 12 teams that's 16
-  slots and therefore 4 byes.
-- Standard seeding (`seedBracket`) places seeds so the top seeds are kept apart. The empty slots
-  fall to the highest seeds: seed 1 gets a bye, seed 16 doesn't exist.
-- A bye is just a match where one slot is "bye". It is finished immediately with the real team as
-  winner, so the next round fills in automatically.
-- In **round robins** an odd count gets a phantom "bye" team. Whoever is drawn against it rests
-  that round, and every team rests exactly once per leg.
-- **Double elimination** is where it gets interesting: the loser of a bye match is itself a bye.
-  That ghost drops into the losers bracket and gives its opponent a free pass. If two ghosts
-  meet, the match is simply "not needed". One rule in `propagate` handles all of this, with no
-  special cases in the generators.
+**3. How do you model a bracket?**
 
-## "What happens when someone edits a result that already advanced a team?"
+- As a directed acyclic graph. Each match has a home and an away _source_: a team, "winner of match
+  X", "loser of match X", "group A, 1st", or a bye.
+- One function, `propagate`, resolves every source in dependency order. Byes, losers brackets,
+  group qualifiers and the grand-final reset all follow from that one rule.
 
-- Every match says where its teams come from ("winner of semi-final 1"), so the bracket is a
-  graph. After any result changes, `propagate` walks the graph in dependency order and
-  re-resolves every slot.
-- Later matches that haven't been played just get the new team.
-- If a later match **was already played** by the old winner, that result is now meaningless.
-  `propagate` lists those matches as _invalidated_ and returns them reset. It never silently
-  deletes anything; it reports.
-- The service then applies the tournament's policy:
-  - **Reset downstream** (default): the API answers `409 CONFIRMATION_REQUIRED` with the affected
-    matches. The organizer sees "these results will be cleared" and confirms.
-  - **Block edit**: the change is refused.
-- Score-only edits that keep the same winner change nothing downstream.
-- Separately, every match has a `version`. If two organizers edit the same match, the second
-  write gets `VERSION_CONFLICT` instead of silently overwriting the first.
-- `propagate` is idempotent (running it twice changes nothing), which is checked with property
-  tests over randomly played brackets.
+**4. Why derive standings instead of storing them?**
 
-## "Why are standings derived instead of stored?"
+- A stored table is a cache that can go stale: edit a result, forget the table, and they disagree
+  forever.
+- Recomputing on every read costs microseconds at this size and can never be wrong in a way the
+  results aren't. Changing a tiebreaker setting is also free.
 
-- Stored standings are a cache that can go stale: edit one result, forget to update the table,
-  and the two disagree forever.
-- Computing the table from the results on every read takes microseconds for a tournament this
-  size, and it can't be wrong in a way the results aren't.
-- It also makes tiebreaker changes free. Change the config and every table is instantly
-  recomputed.
-- The tiebreaker chain is configurable. The subtle part is **head-to-head among three or more
-  teams**: build a mini-table of only the tied teams' games against each other. If that splits
-  them into smaller groups, re-apply head-to-head inside each group using only _their_ games.
-  A test case found by a random search pins down why the recursion matters.
-- The chain ends with alphabetical order and finally the team id, so the order is always total
-  and stable.
+**5. What does the tournament lifecycle look like?**
 
-## "How do viewers get live updates? How would it scale?"
+- A small state machine: DRAFT → REGISTRATION → IN_PROGRESS → COMPLETED, plus ARCHIVED from any
+  state. COMPLETED → IN_PROGRESS is allowed when an edit re-opens matches.
+- Illegal moves throw `INVALID_STATE` (409). The full transition table is tested (`src/server/lifecycle.ts`).
 
-- When a service commits a change, it publishes a tiny event ("match X changed") to an in-memory
-  hub. Each viewer holds a Server-Sent Events connection. On an event, the page **refetches the
-  whole view** rather than patching itself, so a missed event can never leave it wrong.
-- SSE fits because viewers only listen. It's plain HTTP and reconnects automatically. If it fails
-  the client falls back to polling every 10 seconds, and it refetches when the tab becomes
-  visible again.
-- To scale to many viewers and several server instances:
-  1. Replace the in-memory hub with **Redis pub/sub**, so an event published by any instance
-     reaches viewers connected to every instance.
-  2. Cache the public view at the **edge** with a short TTL and revalidate on write. Thousands of
-     viewers refetching after an event then mostly hit the cache, not the database.
-  3. Optionally include the new version in the event, so a client already up to date skips the
-     refetch.
-- Today on serverless hosting, the app bounds staleness instead: streams recycle every 60
-  seconds, and clients re-sync every 30 seconds (see `docs/DEPLOYMENT.md`).
+**6. Why SQLite in development and PostgreSQL in production?**
 
-## "How does the scheduler work?"
+- SQLite needs zero setup, so tests get a fresh database file each and run in parallel.
+- Production needs a real server, and Prisma can't switch providers by environment variable. So a
+  script generates the Postgres schema from the SQLite one, and a test fails if they drift.
+- `npm run test:pg` runs every server integration test against a real PostgreSQL 17
+  (embedded-postgres), using the production migrations.
 
-- It's a constraint problem: a venue hosts one match per slot, a team plays at most once per slot
-  with a configurable rest gap, and a match can't start before the matches that feed it.
-- It uses a greedy heuristic: repeatedly pick the ready match with the fewest possible slots
-  ("most constrained first"), breaking ties by the busiest team, and put it in its earliest
-  option.
-- The tie-break exists because of a concrete failure: with a team that must play in every slot,
-  naive ordering leaves its last game nowhere to go.
-- Matches that don't fit are reported, never dropped silently.
+## Algorithms
 
-## "How do you know it works?"
+**7. How do you handle byes?**
 
-- 230+ unit and integration tests. Engine coverage is about 100% of lines and 97% of branches, and
-  CI enforces a 90% minimum.
-- Property-based tests check invariants rather than examples:
-  - every pair meets exactly once per leg;
-  - seeds 1 and 2 can only meet in the final;
-  - in double elimination every non-champion loses exactly twice;
-  - the scheduler never double-books.
-- Every API route is tested for success, bad input, missing or wrong token, and state conflicts.
-  A test fails if someone adds a route without tests.
-- Playwright runs the full organizer flow on desktop and mobile, and a two-browser test shows a
-  result entered by the organizer appearing on a viewer's open page without a reload.
+- A bracket's size is the next power of two, and the empty slots go to the top seeds.
+- A bye match is finished immediately with the real team as the winner.
+- In double elimination, the _loser_ of a bye is itself a bye, so it flows into the losers bracket
+  with no special code.
+- Round robins add a phantom "bye" seat; everyone rests exactly once per leg.
 
-## "What would you do differently or next?"
+**8. How does the round robin work?**
 
-- Redis for the event hub and rate limiter (above).
-- Accounts, so organizers have a dashboard instead of a single secret link.
-- A forfeit action, penalty scores for knockout draws, and live in-match scores.
-- Swiss-system pairing.
+- The circle method: fix one team, rotate the others each round.
+- Home advantage alternates, giving the minimum n−2 "breaks" (two home or two away games in a
+  row). Property tests check that every pair meets exactly once per leg.
+
+**9. How does seeding keep the best teams apart?**
+
+- Start with `[1, 2]`, then replace each seed `s` with `s, 2m+1−s` as the bracket doubles. That
+  gives 1,8,4,5,2,7,3,6.
+- A property test checks that the top 2ᵏ seeds always land in different blocks, so seeds 1 and 2
+  can only meet in the final.
+
+**10. Explain double elimination.**
+
+- A winners bracket, and a losers bracket that alternates "drop-down" rounds (new losers come in)
+  with "consolidation" rounds (survivors play each other).
+- In the grand final, if the losers-bracket champion wins, a reset match is played.
+- Losers drop in with a rotating pattern, chosen by simulating 1,200 brackets and counting rematches.
+- A property test checks that every non-champion is eliminated after exactly two losses.
+
+**11. What happens when someone edits a result that already advanced a team?**
+
+- `propagate` re-resolves every later slot. Unplayed matches simply get the new team.
+- Matches that were _already played_ by the old winner are reset and reported as `invalidated`.
+- The service then applies the tournament's policy: ask the organizer to confirm (409
+  `CONFIRMATION_REQUIRED`, listing the matches) or block the edit.
+- `propagate` is idempotent; that is tested on thousands of random brackets.
+
+**12. How are ties broken in the table?**
+
+- A configurable chain: points, head-to-head, goal difference, goals scored, wins, seed, name, and
+  finally team id, so the order is always total.
+- Head-to-head builds a mini table of only the tied teams' games. If that splits them, it is
+  re-applied within each smaller group. A randomized search found the 4-way tie that proves the
+  recursion matters; it is pinned as a test.
+
+**13. How does the Swiss system pair players?**
+
+- Rank by points, then Buchholz (the sum of opponents' points), then seed. Pair neighbours
+  (Monrad style).
+- A depth-first search with backtracking avoids every rematch whenever one is possible; otherwise
+  it reports the fewest rematches instead of failing.
+- With an odd count, the lowest-ranked player without a bye sits out with a win.
+- Each round is paired in the same transaction that completes the previous one.
+
+**14. How does the scheduler work, and is it optimal?**
+
+- A greedy, _most-constrained-first_ heuristic. Take the match with the fewest (slot, venue)
+  options among those whose feeders are placed; break ties by the busiest team. Never break the
+  rest, venue or bracket-order rules; report what doesn't fit.
+- It is **not** optimal. An exact solver (constraint programming) could fit more in tight
+  schedules.
+
+## State, concurrency and data
+
+**15. How is state managed in the UI?**
+
+- The database is the source of truth. Pages render a server-built view.
+- On any change the client refetches the _whole_ view rather than patching it, so it can't drift.
+- Only result entry is optimistic: the score shows immediately and is replaced by the server's
+  view (or rolled back on error).
+
+**16. Two organizers edit the same match at once. What happens?**
+
+- Every match has a `version`. The client sends the version it saw; a stale one gets 409
+  `VERSION_CONFLICT` and nothing changes.
+- The write itself is `UPDATE … WHERE id = ? AND version = ?`, so even two simultaneous requests
+  can't both win. A test fires two at once and checks that exactly one succeeds.
+
+**17. Why publish live events after the transaction commits?**
+
+- If you publish inside the transaction and it rolls back, viewers are told about a change that
+  never happened.
+- Publishing after commit can at worst _miss_ an event, and the client re-syncs anyway.
+
+**18. Forfeits and knockout draws?**
+
+- A forfeit is stored as an ordinary result (3–0 by default, 1–0 for sports like chess) marked
+  `WALKOVER`, so standings and brackets need no special case.
+- A level knockout score is accepted only as "won on penalties" with the shoot-out winner. The rules
+  live in one pure function shared by the server and the form (`src/lib/result-rules.ts`).
+
+## Real-time and scaling
+
+**19. Why Server-Sent Events rather than WebSockets?**
+
+- Viewers only receive; they never send. SSE is plain HTTP, reconnects automatically, passes
+  through proxies, and needs no extra protocol. WebSockets would add two-way complexity for nothing.
+
+**20. What if a viewer misses an event?**
+
+- Events carry no data, only "something changed", and the client refetches the full view. It also
+  refetches after every reconnect, when the tab becomes visible, and every 30 seconds.
+- If SSE keeps failing, it falls back to polling every 10 seconds.
+
+**21. How would this scale to thousands of viewers?**
+
+- (1) **Fan-out across servers:** set `REDIS_URL` so events go through Redis pub/sub and reach
+  viewers on every instance. The adapter exists, tested with `ioredis-mock`.
+- (2) **Read load:** each event makes every viewer refetch. Cache `GET /api/t/:slug` at the edge for
+  a second or two, keyed by a version, so thousands of refetches hit the cache, not the database.
+- (3) **Payload:** send the new version in the event, so up-to-date clients skip the refetch.
+- (4) **Connections:** SSE holds one connection per viewer. Very large events would move streams to
+  a dedicated service or a managed pub/sub. I have **not** load-tested any of this.
+
+**22. What happens on serverless hosting like Vercel?**
+
+- Without Redis, an event published by one function instance doesn't reach a viewer connected to
+  another. Streams also end after 60 seconds.
+- The client's reconnect and 30-second re-sync bound the delay to about 30 seconds; with Redis,
+  updates are immediate.
+
+## Security
+
+**23. How does the admin token work?**
+
+- Creating a tournament returns 32 random bytes (base64url) once. Only its SHA-256 hash is stored.
+- Requests send `Authorization: Bearer <token>`, compared with `timingSafeEqual` on the digests.
+- A missing or wrong token gets the same 401, and the public view never exposes the hash.
+
+**24. Why hash a random token rather than bcrypt it?**
+
+- Bcrypt slows down guessing of _low-entropy_ passwords. A 256-bit random token can't be guessed,
+  so a fast hash suffices, and the hash still means a database leak doesn't leak working tokens.
+
+**25. Isn't a token in the URL risky?**
+
+- Somewhat: URLs land in history and logs. The admin page moves the token from `?token=` into
+  localStorage and strips it from the address bar. It also covers it in the demo GIF.
+- A real product would use accounts or a short-lived exchange code instead.
+
+**26. How do you protect against abuse and bad input?**
+
+- Every request body is validated with zod. Services re-check state transitions (for example, no
+  team changes after the start). Write endpoints are rate-limited per IP, _before_ the token check,
+  so guessing is throttled too.
+- CSV export neutralises spreadsheet formula injection, since team names are user input.
+
+## Testing and quality
+
+**27. What's your testing strategy?**
+
+- The engine is tested first and heavily, including property-based tests (fast-check) of the
+  invariants above.
+- Services and routes run against real databases (SQLite per test file, and PostgreSQL via
+  `test:pg`). Every route is tested for success, bad input, auth and conflicts, and a test fails if
+  a route is added without tests.
+- Playwright runs the full organizer flow on desktop and mobile, including a two-browser test of
+  live updates.
+
+**28. Did the tests find real bugs?**
+
+- Yes, several.
+  - Brackets accepted duplicate team ids.
+  - Equal seeds made brackets depend on input order.
+  - A Swiss round 4 match was labelled "Final".
+  - The public page stayed on "Fixtures" after a tournament went live.
+  - The admin token reappeared in the URL because Next.js re-wrote history after my effect ran.
+  - A scheduler case needed a tie-break.
+- Each now has a regression test or a documented check.
+
+**29. How did you make sure the Postgres path actually works?**
+
+- `npm run test:pg` starts a real PostgreSQL 17 (embedded-postgres), applies the production
+  migrations with `prisma migrate deploy`, and runs all server tests against it. It also runs in CI.
+
+**30. What would you do differently?**
+
+- Start with accounts instead of admin links, if the product needed dashboards.
+- Pick a dedicated real-time service earlier, if the main goal were huge audiences.
+- Store richer match data (penalty scores, live scores) from day one.
+- Treat the scheduler as a constraint problem from the start.
+
+## Honest limitations
+
+Say these before someone else finds them:
+
+- **Not deployed.** The Vercel and Neon configuration exists, but the app has never run in
+  production. I can't quote real-world performance.
+- **No load testing.** The scaling answers are designs, not measurements.
+- **The Redis adapter is tested only with `ioredis-mock`**, never against a live Redis server.
+- **The rate limiter is in memory**, so it is per instance on serverless hosting.
+- **The Swiss pairing is Monrad-style**, not the official FIDE Dutch system; colour balance only
+  counts home games.
+- **The scheduler is a greedy heuristic** and can miss schedules an exact solver would find.
+- **No accounts.** Losing the admin link means losing control. There is no audit log of who changed
+  what.
+- `npm audit` reports advisories in build-time tooling (Next's bundled PostCSS, the Prisma CLI);
+  fixing them needs a major upgrade to Next 16.
+- **How it was built:** with an AI coding assistant, under a written spec and roadmap I directed.
+  Be ready to say so, and know the code well enough to explain any line ([CODE_TOUR.md](CODE_TOUR.md)
+  and [STUDY_GUIDE.md](STUDY_GUIDE.md) are for exactly that).

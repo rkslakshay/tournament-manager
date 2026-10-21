@@ -114,6 +114,6 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 ### 7F. Interview and resume preparation
 
 - [x] 7.17 docs/CODE_TOUR.md
-- [ ] 7.18 docs/INTERVIEW_NOTES.md expanded to 25+ questions with honest limitations
+- [x] 7.18 docs/INTERVIEW_NOTES.md expanded to 25+ questions with honest limitations
 - [ ] 7.19 docs/RESUME.md
 - [ ] 7.20 docs/STUDY_GUIDE.md

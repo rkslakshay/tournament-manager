@@ -4,6 +4,9 @@ import { ServiceError } from "@/server/errors";
 import { eventHub, type TournamentEvent } from "@/server/events";
 
 export const dynamic = "force-dynamic";
+// Serverless hosts cap function duration. When the stream ends, EventSource reconnects on its own
+// and the client refetches the full view, so nothing is missed.
+export const maxDuration = 60;
 
 const HEARTBEAT_MS = 25_000;
 

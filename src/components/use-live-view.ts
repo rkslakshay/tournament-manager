@@ -7,6 +7,11 @@ import type { PublicView } from "@/lib/public-view";
 export type LiveMode = "connecting" | "live" | "polling";
 
 const POLL_MS = 10_000;
+/**
+ * Safety re-sync while SSE is connected. With several server instances (e.g. serverless), an
+ * event published on one instance does not reach streams held by another; this bounds the delay.
+ */
+const LIVE_RESYNC_MS = 30_000;
 const DEBOUNCE_MS = 250;
 /** Consecutive SSE errors without a successful open before falling back to polling. */
 const MAX_SSE_ERRORS = 3;
@@ -44,10 +49,12 @@ export function useLiveView(initialView: PublicView): {
   useEffect(() => {
     let source: EventSource | null = null;
     let poll: ReturnType<typeof setInterval> | null = null;
+    const resync = setInterval(() => void refresh(), LIVE_RESYNC_MS);
     let errors = 0;
     let wasDisconnected = false;
 
     const startPolling = () => {
+      clearInterval(resync);
       source?.close();
       source = null;
       setMode("polling");
@@ -81,6 +88,7 @@ export function useLiveView(initialView: PublicView): {
     return () => {
       source?.close();
       if (poll) clearInterval(poll);
+      clearInterval(resync);
       if (timer.current) clearTimeout(timer.current);
       document.removeEventListener("visibilitychange", onVisible);
     };

@@ -11,6 +11,22 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 19:15: Task 6.3: Deployment config (Vercel + Neon)
+
+- `vercel.json`: Next.js framework, `buildCommand: npm run build:prod` (Postgres client, `migrate deploy`, `next build`).
+- `docs/DEPLOYMENT.md` covers:
+  - Neon setup (pooled `DATABASE_URL` with `pgbouncer=true`, direct `DIRECT_URL`) and the env var table.
+  - Seeding production and the two-schema workflow for future migrations.
+  - A deploy checklist.
+  - Honest notes on serverless limits for SSE and rate limiting.
+- Serverless real-time hardening (decision):
+  - The in-memory hub only reaches viewers on the same instance. The `/events` route sets `maxDuration = 60`, so streams recycle and the client refetches on each reconnect.
+  - `useLiveView` also re-syncs every 30 s while connected. Worst case on Vercel is about 30 s; on a single server, updates stay instant.
+  - Redis pub/sub (Stretch S.2) is the documented fix.
+- Not deployed: deploying needs the owner's Vercel and Neon accounts. The config and docs are ready.
+- Tests: 230 passing; lint and typecheck clean.
+- Next task: 6.4 README.
+
 ## 2026-10-21 18:55: Task 6.2: PostgreSQL for production, env vars documented
 
 - Prisma cannot switch providers by environment variable, so production uses a generated schema.

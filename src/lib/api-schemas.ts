@@ -24,6 +24,9 @@ const score = z.number().int().min(0).max(999);
 export const resultBody = z.object({
   homeScore: score,
   awayScore: score,
+  /** Knockouts only: EXTRA_TIME, or PENALTIES with `winnerTeamId` when level. Default REGULAR. */
+  decidedBy: z.enum(["REGULAR", "EXTRA_TIME", "PENALTIES"]).optional(),
+  winnerTeamId: z.string().min(1).optional(),
   confirmReset: z.boolean().optional(),
   expectedVersion: z.number().int().min(0).optional(),
 });
@@ -47,7 +50,7 @@ export const matchStatusBody = z.object({
 });
 
 /** How a finished result was decided. Null on matches without a result. */
-export const DECIDED_BY = ["REGULAR", "WALKOVER"] as const;
+export const DECIDED_BY = ["REGULAR", "EXTRA_TIME", "PENALTIES", "WALKOVER"] as const;
 export type DecidedBy = (typeof DECIDED_BY)[number];
 
 /** Record a forfeit: `teamId` gives up the match and the opponent wins by walkover. */

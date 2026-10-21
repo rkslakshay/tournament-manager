@@ -5,7 +5,7 @@ import { parseTournamentConfig, type TournamentConfigInput } from "@/lib/tournam
 import {
   configOf,
   indexMatches,
-  isWalkover,
+  isAutoDecided,
   roundsOf,
   slotText,
   stageTitle,
@@ -75,7 +75,7 @@ describe("view model", () => {
     expect(slotText(view, index, semi, "home")).toBe("Team 1");
     expect(slotText(view, index, semi, "away")).toBe("Winner of QF 2");
     const bye = stage.matches.find((m) => m.id === "r1m1")!;
-    expect(isWalkover(bye)).toBe(true);
+    expect(isAutoDecided(bye)).toBe(true);
     expect(slotText(view, index, bye, "away")).toBe("Bye");
     expect(index.get("3rd")?.label).toBe("3rd place");
   });
@@ -129,6 +129,9 @@ describe("withOptimisticResult", () => {
     expect(
       withOptimisticResult(view, target.id, 1, 1).stages[0]!.matches[0]!.winnerTeamId,
     ).toBeNull();
+    expect(
+      withOptimisticResult(view, target.id, 1, 1, "t9").stages[0]!.matches[0]!.winnerTeamId,
+    ).toBe("t9");
     expect(allowsDraws(view.stages[0]!)).toBe(true);
     expect(allowsDraws(viewFor({ format: "SINGLE_ELIM" }, 2).stages[0]!)).toBe(false);
   });

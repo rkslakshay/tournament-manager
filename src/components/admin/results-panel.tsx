@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ApiError } from "@/lib/api-client";
+import { decideResult, type PlayedDecision } from "@/lib/result-rules";
 import type { PublicMatch, PublicStage, PublicView } from "@/lib/public-view";
 import {
   allowsDraws,
   indexMatches,
-  isWalkover,
+  isAutoDecided,
   roundsOf,
   slotText,
   stageTitle,
@@ -20,7 +21,14 @@ import type { AdminActions } from "./admin-app";
 
 /** What the organizer is saving for a match. */
 export type Submission =
-  { kind: "result"; homeScore: number; awayScore: number } | { kind: "forfeit"; teamId: string };
+  | {
+      kind: "result";
+      homeScore: number;
+      awayScore: number;
+      decidedBy?: PlayedDecision;
+      winnerTeamId?: string;
+    }
+  | { kind: "forfeit"; teamId: string };
 
 interface PendingEdit {
   match: PublicMatch;
@@ -52,7 +60,13 @@ export function ResultsPanel({ view, actions }: { view: PublicView; actions: Adm
     setSavingId(match.id);
     if (submission.kind === "result") {
       actions.setView(
-        withOptimisticResult(view, match.id, submission.homeScore, submission.awayScore),
+        withOptimisticResult(
+          view,
+          match.id,
+          submission.homeScore,
+          submission.awayScore,
+          submission.winnerTeamId,
+        ),
       );
     }
     const { kind, ...fields } = submission;
@@ -115,7 +129,7 @@ export function ResultsPanel({ view, actions }: { view: PublicView; actions: Adm
                       info={index.get(match.id) as MatchInfo}
                       stage={stage}
                       saving={savingId === match.id}
-                      onSave={(h, a) => save(match, { kind: "result", homeScore: h, awayScore: a })}
+                      onSave={(result) => save(match, { kind: "result", ...result })}
                       onForfeit={() => setForfeiting({ match, teamId: match.homeTeamId ?? "" })}
                       onToggleLive={() => toggleLive(match)}
                     />
@@ -199,7 +213,7 @@ interface RowProps {
   info: MatchInfo;
   stage: PublicStage;
   saving: boolean;
-  onSave: (homeScore: number, awayScore: number) => void;
+  onSave: (result: Omit<Extract<Submission, { kind: "result" }>, "kind">) => void;
   onToggleLive: () => void;
   onForfeit: () => void;
 }
@@ -218,9 +232,18 @@ function ResultRow({
   const [home, setHome] = useState(match.homeScore?.toString() ?? "");
   const [away, setAway] = useState(match.awayScore?.toString() ?? "");
   const [error, setError] = useState<string | null>(null);
+  const league = allowsDraws(stage);
+  const [decidedBy, setDecidedBy] = useState<PlayedDecision>(
+    match.decidedBy === "EXTRA_TIME" || match.decidedBy === "PENALTIES"
+      ? match.decidedBy
+      : "REGULAR",
+  );
+  const [penaltyWinner, setPenaltyWinner] = useState(
+    match.decidedBy === "PENALTIES" ? (match.winnerTeamId ?? "") : "",
+  );
   const homeName = slotText(view, index, match, "home");
   const awayName = slotText(view, index, match, "away");
-  const ready = match.homeTeamId !== null && match.awayTeamId !== null && !isWalkover(match);
+  const ready = match.homeTeamId !== null && match.awayTeamId !== null && !isAutoDecided(match);
 
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -236,9 +259,17 @@ function ResultRow({
     ) {
       return setError("Enter both scores as whole numbers.");
     }
-    if (h === a && !allowsDraws(stage)) return setError("Knockout matches need a winner.");
+    const winnerTeamId = decidedBy === "PENALTIES" && penaltyWinner ? penaltyWinner : undefined;
+    const claim = {
+      homeScore: h,
+      awayScore: a,
+      decidedBy: league ? undefined : decidedBy,
+      winnerTeamId,
+    };
+    const decision = decideResult(claim, match, league);
+    if (!decision.ok) return setError(decision.message);
     setError(null);
-    onSave(h, a);
+    onSave(claim);
   }
 
   if (!ready) {
@@ -248,7 +279,7 @@ function ResultRow({
           {homeName} vs {awayName}
         </span>
         <span className="shrink-0 text-xs">
-          {isWalkover(match)
+          {isAutoDecided(match)
             ? match.winnerTeamId
               ? "Advances on a bye"
               : "Not needed"
@@ -342,6 +373,36 @@ function ResultRow({
         >
           {saving ? "Saving…" : done ? "Update" : "Save"}
         </Button>
+        {!league && (
+          <div className="col-span-full flex flex-wrap items-center gap-2 text-xs">
+            <label className="flex items-center gap-1">
+              Decided in
+              <select
+                value={decidedBy}
+                onChange={(e) => setDecidedBy(e.target.value as PlayedDecision)}
+                className="h-7 rounded border border-slate-300 bg-white px-1 dark:border-slate-700 dark:bg-slate-900"
+              >
+                <option value="REGULAR">Regular time</option>
+                <option value="EXTRA_TIME">Extra time</option>
+                <option value="PENALTIES">Penalties</option>
+              </select>
+            </label>
+            {decidedBy === "PENALTIES" && (
+              <label className="flex items-center gap-1">
+                Shoot-out winner
+                <select
+                  value={penaltyWinner}
+                  onChange={(e) => setPenaltyWinner(e.target.value)}
+                  className="h-7 rounded border border-slate-300 bg-white px-1 dark:border-slate-700 dark:bg-slate-900"
+                >
+                  <option value="">Choose…</option>
+                  <option value={match.homeTeamId ?? ""}>{homeName}</option>
+                  <option value={match.awayTeamId ?? ""}>{awayName}</option>
+                </select>
+              </label>
+            )}
+          </div>
+        )}
         {error && (
           <p
             role="alert"

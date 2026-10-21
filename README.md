@@ -143,8 +143,8 @@ JSON over REST. Write endpoints need `Authorization: Bearer <adminToken>`. Error
   constant time, and write endpoints are rate-limited.
 - **SSE instead of WebSockets.** Viewers only receive. On an event they refetch the whole view,
   which is simple and always consistent, even after missed events.
-- **Draws in knockouts are rejected** rather than adding extra-time or penalty fields (a v1
-  simplification).
+- **Knockout draws need a decision.** A level knockout score is accepted only when marked as won
+  on penalties with the shoot-out winner; extra time is recorded as `AET`. League draws stand.
 
 ## What I'd improve next
 
@@ -153,7 +153,7 @@ JSON over REST. Write endpoints need `Authorization: Bearer <adminToken>`. Error
 - Swiss-system pairing, CSV export, and accounts with a "my tournaments" dashboard (the Stretch
   roadmap).
 - A one-click "withdraw team" that awards walkovers for all of a team's remaining matches (today each forfeit is recorded per match).
-- Penalty shoot-out scores for knockout draws.
+- Store the penalty shoot-out score itself (today only the shoot-out winner is recorded).
 - Live scores during a match, not just a live flag.
 
 ## Project layout

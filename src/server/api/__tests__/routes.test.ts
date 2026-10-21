@@ -485,3 +485,35 @@ describe("PUT /api/t/:slug/matches/:matchId/forfeit", () => {
     });
   });
 });
+
+describe("knockout draws through the result route", () => {
+  it("accepts a draw decided on penalties and advances the shoot-out winner", async () => {
+    const { slug, adminToken, view } = await started(["A", "B", "C", "D"], "SINGLE_ELIM");
+    const semi = view.stages[0]!.matches[0]!;
+    const put = (body: unknown) =>
+      resultRoute(request("PUT", { body, token: adminToken, ip }), ctx({ slug, matchId: semi.id }));
+    expect(await errorOf(await put({ homeScore: 2, awayScore: 2 }))).toEqual({
+      status: 400,
+      code: "VALIDATION",
+    });
+    expect(
+      await errorOf(await put({ homeScore: 2, awayScore: 2, decidedBy: "SUDDEN_DEATH" })),
+    ).toEqual({
+      status: 400,
+      code: "VALIDATION",
+    });
+    const res = await put({
+      homeScore: 2,
+      awayScore: 2,
+      decidedBy: "PENALTIES",
+      winnerTeamId: semi.awayTeamId,
+    });
+    const body = (await res.json()) as { view: PublicView };
+    const final = body.view.stages[0]!.matches.find((m) => m.round === 2)!;
+    expect(final.homeTeamId).toBe(semi.awayTeamId);
+    expect(body.view.stages[0]!.matches[0]).toMatchObject({
+      decidedBy: "PENALTIES",
+      winnerTeamId: semi.awayTeamId,
+    });
+  });
+});

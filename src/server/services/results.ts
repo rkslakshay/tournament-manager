@@ -9,6 +9,7 @@ import { resolveGroupRankings } from "@/engine/group-knockout";
 import { isBye } from "@/engine/match";
 import { propagate } from "@/engine/propagation";
 import type { Match, MatchId, Stage } from "@/engine/types";
+import { decideResult } from "@/lib/result-rules";
 import {
   isLeagueStageType,
   standingsConfigOf,
@@ -82,21 +83,25 @@ export async function recordResult(
   const parsed = resultBody.safeParse(input);
   if (!parsed.success)
     throw new ServiceError("VALIDATION", "Invalid score", parsed.error.flatten());
-  const { homeScore, awayScore, confirmReset, expectedVersion } = parsed.data;
+  const { homeScore, awayScore, decidedBy, winnerTeamId, confirmReset, expectedVersion } =
+    parsed.data;
 
   return applyResult(db, tournamentId, matchId, {
     expectedVersion,
     confirmReset,
     decide: (match, stage) => {
-      if (homeScore === awayScore && !isLeagueStageType(stage.type)) {
-        throw new ServiceError(
-          "VALIDATION",
-          "Knockout matches need a winner: draws are not allowed",
-        );
-      }
-      const winnerTeamId =
-        homeScore > awayScore ? match.homeTeamId : awayScore > homeScore ? match.awayTeamId : null;
-      return { homeScore, awayScore, winnerTeamId, decidedBy: "REGULAR" };
+      const decision = decideResult(
+        { homeScore, awayScore, decidedBy, winnerTeamId },
+        match,
+        isLeagueStageType(stage.type),
+      );
+      if (!decision.ok) throw new ServiceError("VALIDATION", decision.message);
+      return {
+        homeScore,
+        awayScore,
+        winnerTeamId: decision.winnerTeamId,
+        decidedBy: decision.decidedBy,
+      };
     },
   });
 }

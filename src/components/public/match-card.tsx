@@ -1,5 +1,5 @@
 import type { PublicMatch, PublicView } from "@/lib/public-view";
-import { isWalkover, slotText, type MatchInfo } from "@/lib/view-model";
+import { isAutoDecided, slotText, type MatchInfo } from "@/lib/view-model";
 
 interface Props {
   view: PublicView;
@@ -14,7 +14,7 @@ export function MatchCard({ view, index, match, compact = false }: Props) {
   const away = slotText(view, index, match, "away");
   const venue = view.venues.find((v) => v.id === match.venueId)?.name;
   const finished = match.status === "FINISHED";
-  const walkover = isWalkover(match);
+  const walkover = isAutoDecided(match);
   const known = (teamId: string | null) => teamId !== null;
 
   return (
@@ -66,6 +66,20 @@ function StatusLabel({ match, walkover }: { match: PublicMatch; walkover: boolea
     return (
       <span>
         <abbr title="Walkover: the opponent forfeited">W/O</abbr>
+      </span>
+    );
+  }
+  if (match.decidedBy === "EXTRA_TIME") {
+    return (
+      <span>
+        <abbr title="After extra time">AET</abbr>
+      </span>
+    );
+  }
+  if (match.decidedBy === "PENALTIES") {
+    return (
+      <span>
+        <abbr title="Won on penalties">Pens</abbr>
       </span>
     );
   }

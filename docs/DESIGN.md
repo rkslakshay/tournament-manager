@@ -53,6 +53,11 @@ Admin auth: `Authorization: Bearer <token>` header. Errors: `{ error: { code, me
 - Odd number of teams (round-robin byes, bracket byes).
 - Minimum 2 teams; sensible maximum (e.g. 128).
 - Draws in knockout matches: require a winner (extra-time/penalty field) or disallow draws.
+  Implemented: results carry `decidedBy` (REGULAR | EXTRA_TIME | PENALTIES | WALKOVER). In knockouts
+  the higher score wins (regular or extra time); a level score is accepted only with PENALTIES
+  and the shoot-out winner. League stages accept regular time only, so draws stay draws. Match
+  cards show AET, Pens or W/O. The rules live in `src/lib/result-rules.ts`, shared by the
+  server and the admin form.
 - Editing a result that already advanced a team (invalidate downstream with confirmation).
 - Removing a team after start: not allowed; offer "forfeit" instead (opponent gets a walkover).
   Implemented per match: the organizer picks which team forfeits and the opponent wins with the

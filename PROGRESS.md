@@ -45,6 +45,20 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 23:20: Task 7.6: Knockout draws via extra time or penalties
+
+- `resultBody` gains optional `decidedBy` (`REGULAR | EXTRA_TIME | PENALTIES`) and `winnerTeamId`. With neither field, behaviour is exactly as before (knockout draws rejected, league draws allowed).
+- Rules live in pure `src/lib/result-rules.ts` (`decideResult`), used by both the service and the admin form:
+  - League stages: regular time only; a level score is a draw.
+  - Knockout: the higher score wins (`REGULAR` or `EXTRA_TIME`). A level score is accepted only as `PENALTIES` with a shoot-out winner who is in the match. A winner that contradicts the score is rejected, as is `PENALTIES` on a non-level score.
+  - Assumption: a level knockout score with a winner but no `decidedBy` is read as penalties.
+- The engine needed no change: propagation already advances whoever `winnerTeamId` names, including on level scores. The shoot-out score itself is not stored (listed under future improvements).
+- UI: knockout result rows get "Decided in" (Regular time / Extra time / Penalties) and, for penalties, a "Shoot-out winner" picker, validated client-side by the same rules. The optimistic view honours the explicit winner. Public match cards show `AET` / `Pens` / `W/O` as `<abbr>` labels.
+- Refactor: renamed the view-model helper `isWalkover` to `isAutoDecided` (it means a bye or a not-needed match), so it no longer clashes with real walkovers.
+- Docs: DESIGN.md edge case, ARCHITECTURE.md entity and README design decision updated.
+- Tests: `knockout-decisions.test.ts` (4 service tests: penalties advance the chosen winner, extra time, every invalid combination, league restrictions), `result-rules.test.ts` (3, including a property test that every accepted knockout result has a playing winner, and the score winner when scores differ), a route test, and an optimistic-winner assertion. **272 tests passing.**
+- PostgreSQL re-verified after the schema change: `npm run test:pg` applied both Postgres migrations (`init`, `match_decided_by`) and passed **109 tests**.
+
 ## 2026-10-21 22:30: Task 7.5: Forfeit / walkover
 
 - Schema: new nullable `Match.decidedBy` (`REGULAR | WALKOVER`; 7.6 adds extra time and penalties). SQLite migration `*_match_decided_by` via `migrate dev`. The Postgres migration `20261021100000_match_decided_by` was generated offline by diffing the previous generated schema against the new one.

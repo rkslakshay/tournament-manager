@@ -111,7 +111,7 @@ export function roundsOf(stage: PublicStage): RoundGroup[] {
 }
 
 /** True when a match was decided without being played (a bye, or a match that was not needed). */
-export function isWalkover(match: PublicMatch): boolean {
+export function isAutoDecided(match: PublicMatch): boolean {
   return match.status === "FINISHED" && match.homeScore === null;
 }
 
@@ -141,6 +141,8 @@ export function withOptimisticResult(
   matchId: string,
   homeScore: number,
   awayScore: number,
+  /** Explicit winner, e.g. on penalties; otherwise the higher score. */
+  winner?: string,
 ): PublicView {
   return {
     ...view,
@@ -155,7 +157,12 @@ export function withOptimisticResult(
               homeScore,
               awayScore,
               winnerTeamId:
-                homeScore > awayScore ? m.homeTeamId : awayScore > homeScore ? m.awayTeamId : null,
+                winner ??
+                (homeScore > awayScore
+                  ? m.homeTeamId
+                  : awayScore > homeScore
+                    ? m.awayTeamId
+                    : null),
             },
       ),
     })),

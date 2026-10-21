@@ -108,8 +108,8 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 
 - [x] 7.13 Check available tooling (git remote, gh, vercel, docker)
 - [x] 7.14 Publish to GitHub (if gh is authenticated), after re-running the secrets audit
-- [ ] 7.15 Deploy to Vercel (if authenticated and a Postgres URL is available)
-- [ ] 7.16 NEEDS_YOU.md with remaining manual steps
+- [ ] 7.15 Deploy to Vercel (if authenticated and a Postgres URL is available). SKIPPED: Vercel CLI logged out and no Postgres URL; steps in NEEDS_YOU.md
+- [x] 7.16 NEEDS_YOU.md with remaining manual steps
 
 ### 7F. Interview and resume preparation
 

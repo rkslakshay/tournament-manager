@@ -45,6 +45,14 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-22 04:05: Task 7.16: NEEDS_YOU.md
+
+- `NEEDS_YOU.md` lists the only remaining manual work, in order, with copy-paste commands: create a Neon database (pooled and direct URLs); optionally Upstash Redis; `vercel login`/`link`/`env add`/`deploy --prod`; set `NEXT_PUBLIC_SITE_URL` and seed the demos (PowerShell one-liner); put the live URL in the README.
+
+## 2026-10-22 04:05: Task 7.15: Deploy: SKIPPED
+
+- Not attempted: `npx vercel whoami` reports "Logged out", and no Postgres connection string exists in the environment. `vercel deploy --temporary` would be possible, but without a database every page would fail, and credentials are never invented. Left unchecked in ROADMAP.md with the reason; the steps are in NEEDS_YOU.md.
+
 ## 2026-10-22 03:55: Task 7.14: Published to GitHub
 
 - Secrets audit re-run before pushing:

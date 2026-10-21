@@ -1,5 +1,39 @@
 # Progress Log
 
+## Final summary (2026-10-21, autonomous run)
+
+**Phases completed:** 0, 1, 2, 3, 4, 5 and 6. Every roadmap task is checked off, and every gate (0–6) was verified. Stretch tasks were not started.
+
+**Tests:** 230 unit and integration tests (Vitest), plus 8 Playwright E2E runs (4 scenarios × desktop and mobile), all passing. Lint and typecheck are clean.
+**Engine coverage:** 100% statements, lines and functions; 97.1% branches (CI enforces 90%).
+
+**Gate 6 check:** a fresh `git clone`, following only the README steps (`npm install`, `cp .env.example .env`, `npm run db:migrate`, `npm run db:seed`, `npm run dev`), served `/`, `/new`, all three demo pages and the API with HTTP 200. Tests, lint, typecheck and coverage also passed in the clone.
+
+**Assumptions made** (details in the task entries below):
+
+1. New tournaments start in REGISTRATION. DRAFT stays in the state machine but is unused because the wizard sets the format up front.
+2. `generateRoundRobin` returns `{ fixtures, byes, rounds }` rather than `Fixture[]`, because byes must be recorded.
+3. Head-to-head compares mini-table points, then mini goal difference, then mini goals scored (UEFA-style), re-applied recursively.
+4. Byes need no extra column. A FINISHED match with one team and no score is a bye; with no teams it is "not needed". The loser of a bye is a bye.
+5. Draws are rejected in knockout stages (no extra-time or penalty fields).
+6. The third-place match is silently skipped when there are no semi-finals (2 teams).
+7. Generators return raw brackets, and the services always run `propagate`, so participants are resolved in one place only.
+8. Stage and match ids are prefixed with the tournament id for global uniqueness. The internal id is therefore indirectly visible in public match ids; it is not a secret.
+9. `editResult` shares `recordResult`'s implementation, so record and edit cannot drift apart.
+10. Hand-written shadcn-style components instead of the shadcn CLI and Radix (fewer dependencies).
+11. Admin links use `?token=`, as in TECHSTACK. The page moves the token to localStorage and strips it from the URL.
+12. Added one route beyond DESIGN's list, `PUT /matches/:id/status`, because task 5.3 needs a way to mark matches live. Also added a scheduling UI (DESIGN organizer step 6) on top of the existing endpoint.
+13. E2E runs against an isolated production build (own DB file, port and `distDir`).
+14. On serverless hosting, live updates are bounded rather than instant: streams recycle every 60 s and clients re-sync every 30 s, until Redis pub/sub (S.2) is added.
+
+**Needs your attention** (see BLOCKERS.md):
+
+- **Task 2.3 (product decision):** a dedicated "forfeit a team" action is not built. Walkovers can be entered as normal results.
+- **Task 6.2 (verification):** the PostgreSQL path (generated schema plus offline migration) passes `prisma validate`, but no live Postgres server was available here. Run the steps in BLOCKERS.md once against Neon.
+- **Not done (needs your accounts):** the Vercel and Neon deployment itself, real screenshots for the README, and adding the live demo link. `docs/DEPLOYMENT.md` has the checklist.
+
+**Exact next step to resume:** follow `docs/DEPLOYMENT.md` to deploy (or verify Postgres per BLOCKERS.md). Then start Stretch task **S.1 Swiss system pairing** in `docs/ROADMAP.md`: add `src/engine/swiss.ts` test-first, alongside the other generators.
+
 Append newest entries at the top. Format:
 
 ```

@@ -16,7 +16,12 @@ const frames = [];
 /** Screenshot both pages and place them side by side on one frame. */
 async function frame(organizer, viewer, delay = 1400) {
   const [left, right] = await Promise.all(
-    [organizer, viewer].map(async (page) => PNG.sync.read(await page.screenshot())),
+    // The admin link input holds a token: never let it into a published image.
+    [organizer, viewer].map(async (page) =>
+      PNG.sync.read(
+        await page.screenshot({ mask: [page.getByLabel("Admin link")], maskColor: "#cbd5e1" }),
+      ),
+    ),
   );
   const width = PANEL.width * 2 + GAP;
   const canvas = new PNG({ width, height: PANEL.height });

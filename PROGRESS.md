@@ -11,6 +11,15 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 11:35: Task 3.3: Rate limiting on writes
+
+- `src/server/api/rate-limit.ts`: a fixed-window in-memory `RateLimiter` with an injectable clock and pruning of expired windows past 10k keys, plus `clientKey` (first `x-forwarded-for` hop, then `x-real-ip`) and `enforceRateLimit`, which throws RATE_LIMITED (429 with `Retry-After`).
+- Limits: tournament creation is 10 per hour per client; every admin write is 120 per minute per client. Both are configurable via `RATE_LIMIT_CREATE_PER_HOUR` and `RATE_LIMIT_WRITES_PER_MINUTE`, documented in `.env.example`.
+- The write limit is applied inside `requireAdmin`, before the token check, so admin-token guessing is throttled too. Public GETs are not limited; they are cheap and can be edge-cached.
+- Known limitation: the limiter is per server instance (in memory). The multi-instance fix is Redis, the same move as the SSE hub (Stretch S.2).
+- Tests: 6 new, 173 total, at unit level and against the real route handlers.
+- Next task: 3.4 API tests.
+
 ## 2026-10-21 11:15: Task 3.2: Routes and admin auth
 
 - Every route from DESIGN.md is implemented as a Next.js App Router handler under `src/app/api/`:

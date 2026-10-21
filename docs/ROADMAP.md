@@ -41,7 +41,7 @@ Each phase ends with a **gate**: all checks green, `PROGRESS.md` updated, README
 
 - [x] 3.1 zod schemas and error format
 - [x] 3.2 Routes from DESIGN.md; admin auth middleware
-- [ ] 3.3 Rate limiting on writes
+- [x] 3.3 Rate limiting on writes
 - [ ] 3.4 API tests (success and failure paths, auth)
 - **Gate 3**: every route tested; no route lacks validation.
 

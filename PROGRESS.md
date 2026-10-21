@@ -11,6 +11,16 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 10:10: Task 2.6: getPublicView
+
+- `getPublicView(db, slug)` returns a `PublicView` (types in `src/lib/public-view.ts`, shared with the UI).
+  - Contents: tournament (slug, name, sport, status, format, public rules), teams, venues, and stages with matches. ROUND_ROBIN and GROUP stages also get standings computed on read with `computeStandings`; standings are never stored.
+  - Excluded: the admin token hash, the tournament's internal id and the edit policy.
+- `championOf` (pure, in `lib/`): the final's winner for single elimination and groups + knockout. For double elimination it is the GF2 winner, or the GF1 winner once GF2 is "not needed". For a round robin it is the leader, only once COMPLETED.
+- Accepted trade-off: match ids carry the tournament id as a prefix (needed for global uniqueness), so the internal id is indirectly visible. It is not a secret (edits need the admin token), and this is documented here.
+- Tests: 6 new, 151 total. Covered: no secrets in the serialised JSON, derived standings, per-group tables, champions for every format (including the double-elimination reset), not-found, and pre-start views.
+- Next task: 2.7 optimistic concurrency.
+
 ## 2026-10-21 09:50: Task 2.5: recordResult and editResult with propagation and invalidation policy
 
 - `recordResult(db, tournamentId, matchId, { homeScore, awayScore, confirmReset })` runs in one transaction:

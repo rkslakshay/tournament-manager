@@ -11,6 +11,16 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 07:30: Task 1.9: Scheduler
+
+- `scheduleMatches(matches, { venues, slots, minRestSlots, groupStageIds })` returns `{ assignments, unscheduled }`. Slots are indices 0..slots-1; the service maps them to real times.
+- Hard constraints: one match per venue per slot; a team plays at most once per slot with `minRestSlots` free slots between games; a match comes after its feeders plus the rest gap. For `groupRank` sources, every match of that group counts as a feeder (mapped via `groupStageIds`).
+- Greedy, most-constrained-first. Among matches whose feeders are placed, the one with the fewest feasible (slot, venue) options goes first into its earliest option. Ties go to the match with the busiest team (most remaining matches), then lower round, then input order.
+  - Decision: the team-load tiebreak was added because option counts alone tie at the start. A test case where a team must play once in each of 3 slots fails without it.
+- FINISHED and LIVE matches are skipped and treated as played. Matches that do not fit, and everything depending on them, go into `unscheduled`.
+- Tests: 10 new, 95 total. Property tests check that no hard constraint is ever broken for random round robins and brackets with random venues, slots and rest gaps; that every open match is either assigned or reported; that output is deterministic; and that everything is scheduled when capacity is ample.
+- Next task: 1.10 double elimination.
+
 ## 2026-10-21 07:05: Task 1.8: Group + knockout
 
 - `src/engine/group-knockout.ts`:

@@ -11,6 +11,26 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 12:00: Gate 3: passed
+
+- Every route file under `src/app/api` is exercised for success, validation failure, auth failure and state conflicts. The inventory test fails if a new route file appears without being added to the suite (the SSE route is excluded until 5.1 adds its own tests).
+- Every route with a body validates it with a zod schema from `src/lib/api-schemas.ts`. Path params are checked by the services (404 for unknown or foreign ids).
+- 193 tests passing; lint, typecheck and `next build` are clean. README now documents the API.
+- Next task: 4.1 landing page and create wizard.
+
+## 2026-10-21 12:00: Task 3.4: API tests
+
+- `src/server/api/__tests__/routes.test.ts` (20 tests) calls the real route handlers against a temporary SQLite DB.
+- Coverage by area:
+  - Create: success, bad config, malformed JSON.
+  - Public view: no token leakage, 404.
+  - Auth: missing, wrong and cross-tournament tokens; unknown slug; every admin route guarded.
+  - Teams: add, duplicates, after-start; remove, unknown team, after-start; reorder, partial order, bad body.
+  - Start: success, too few teams, twice.
+  - Results: success with propagated view, invalid score, knockout draw, unknown match, another tournament's match, stale version, confirmation-required then confirmed reset.
+  - Schedule: success, invalid body, before start.
+- Each test uses its own fake client IP so per-client rate limits don't interfere.
+
 ## 2026-10-21 11:35: Task 3.3: Rate limiting on writes
 
 - `src/server/api/rate-limit.ts`: a fixed-window in-memory `RateLimiter` with an injectable clock and pruning of expired windows past 10k keys, plus `clientKey` (first `x-forwarded-for` hop, then `x-real-ip`) and `enforceRateLimit`, which throws RATE_LIMITED (429 with `Retry-After`).

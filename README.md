@@ -32,6 +32,21 @@ npm run dev            # http://localhost:3000
 | `npm run db:migrate` | Apply Prisma migrations in development |
 | `npm run db:seed` | Seed demo data |
 
+## API
+JSON over REST. Write endpoints need `Authorization: Bearer <adminToken>` (returned once when the
+tournament is created). Errors look like `{ "error": { "code", "message", "details?" } }`.
+
+| Method | Path | Auth | Purpose |
+|---|---|---|---|
+| POST | `/api/tournaments` | none (rate-limited) | Create; returns `{ slug, adminToken }` |
+| GET | `/api/t/:slug` | none | Public view: teams, matches, derived standings |
+| POST | `/api/t/:slug/teams` | admin | Add teams `{ names: [] }` |
+| DELETE | `/api/t/:slug/teams/:teamId` | admin | Remove a team (before start) |
+| PUT | `/api/t/:slug/teams/order` | admin | Reseed `{ teamIds: [] }` |
+| POST | `/api/t/:slug/start` | admin | Generate fixtures and lock teams |
+| PUT | `/api/t/:slug/matches/:matchId/result` | admin | Record/edit `{ homeScore, awayScore, expectedVersion?, confirmReset? }` |
+| POST | `/api/t/:slug/schedule` | admin | Auto-schedule `{ venues, startTime, slotMinutes, minRestSlots }` |
+
 ## Project layout
 - `src/engine/`: pure tournament logic (fixtures, standings, brackets, scheduling). No I/O.
 - `src/server/`: database access, services, real-time hub.

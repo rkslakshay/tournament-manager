@@ -29,6 +29,8 @@ and every tournament has a public page that updates live for players and fans.
   previews for chat apps.
 - **No sign-up**: creating a tournament returns a private admin link (the token is stored only as
   a SHA-256 hash).
+- **CSV export**: standings and fixtures download from the public page (RFC 4180, spreadsheet
+  formula injection neutralised).
 - **Auto-scheduler**: assigns venues and time slots with rest gaps, respecting bracket order.
 
 ## Architecture

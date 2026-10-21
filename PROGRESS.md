@@ -45,6 +45,16 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-22 01:45: Task 7.9: CSV export
+
+- `src/lib/csv.ts` (pure):
+  - `csvCell`/`toCsv`: RFC 4180 quoting of commas, quotes, line breaks and edge spaces; CRLF line endings.
+  - **Formula-injection guard**: text starting with `= + - @`, tab or CR gets an apostrophe prefix (team names are user input). Real numbers like `-2` are untouched.
+  - `standingsCsv` (every league table, stage column, Buchholz excluded for a stable header) and `fixturesCsv` (stage, round, match label, teams or their source, scores, status, decided-by, UTC kick-off, venue). Both start with a UTF-8 BOM for Excel.
+- UI: "Download standings (CSV)" and "Download fixtures (CSV)" buttons on the public tabs build the file in the browser from the view already loaded. No new endpoint and no extra server load.
+- Tests: 6 unit tests, including a property test that any text round-trips through a reference RFC 4180 parser, plus the injection cases. A new Playwright test `e2e/csv.spec.ts` really clicks both buttons and reads the downloaded files (desktop and mobile). **304 unit/integration tests; full E2E suite 10/10.**
+- Stretch S.3 checked off; README feature list updated.
+
 ## 2026-10-22 01:15: Task 7.8: Multi-instance live updates (pub/sub adapter)
 
 - New `PubSub` interface (`src/server/pubsub.ts`: event types, contract, and the shared `ListenerRegistry` that isolates failing listeners) with two adapters:

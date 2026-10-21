@@ -8,7 +8,9 @@ import { useLiveView, type LiveMode } from "@/components/use-live-view";
 import type { PublicView } from "@/lib/public-view";
 import { FORMAT_LABELS } from "@/lib/tournament-config";
 import { indexMatches, stageTitle, teamNamer, type MatchInfo } from "@/lib/view-model";
+import { fixturesCsv, standingsCsv } from "@/lib/csv";
 import { Bracket } from "./bracket";
+import { DownloadCsv } from "./download-csv";
 import { FixturesList } from "./fixtures-list";
 import { MatchCard } from "./match-card";
 import { StandingsTable } from "./standings-table";
@@ -26,18 +28,27 @@ export function PublicTournament({ initialView }: { initialView: PublicView }) {
       id: "standings",
       label: "Standings",
       content: (
-        <div className="grid gap-6 xl:grid-cols-2">
-          {leagueStages.map((stage) => (
-            <StandingsTable
-              key={stage.id}
-              title={stageTitle(stage)}
-              rows={stage.standings ?? []}
-              teamName={(id) => name(id)}
-              qualifyingPlaces={
-                stage.type === "GROUP" ? (view.tournament.rules.advancePerGroup ?? 0) : 0
-              }
+        <div className="space-y-4">
+          <div className="flex justify-end">
+            <DownloadCsv
+              label="Download standings (CSV)"
+              filename={`${view.tournament.slug}-standings.csv`}
+              build={() => standingsCsv(view)}
             />
-          ))}
+          </div>
+          <div className="grid gap-6 xl:grid-cols-2">
+            {leagueStages.map((stage) => (
+              <StandingsTable
+                key={stage.id}
+                title={stageTitle(stage)}
+                rows={stage.standings ?? []}
+                teamName={(id) => name(id)}
+                qualifyingPlaces={
+                  stage.type === "GROUP" ? (view.tournament.rules.advancePerGroup ?? 0) : 0
+                }
+              />
+            ))}
+          </div>
         </div>
       ),
     });
@@ -45,7 +56,18 @@ export function PublicTournament({ initialView }: { initialView: PublicView }) {
   tabs.push({
     id: "fixtures",
     label: "Fixtures",
-    content: <FixturesList view={view} index={index} />,
+    content: (
+      <div className="space-y-4">
+        <div className="flex justify-end">
+          <DownloadCsv
+            label="Download fixtures (CSV)"
+            filename={`${view.tournament.slug}-fixtures.csv`}
+            build={() => fixturesCsv(view)}
+          />
+        </div>
+        <FixturesList view={view} index={index} />
+      </div>
+    ),
   });
   const knockoutStages = view.stages.filter(
     (s) => s.type === "SINGLE_ELIM" || s.type === "DOUBLE_ELIM",

@@ -1,17 +1,11 @@
 import { Prisma } from "@prisma/client";
-import { z } from "zod";
 import { slugify } from "@/lib/slug";
-import { tournamentConfigSchema, type TournamentConfigInput } from "@/lib/tournament-config";
+import { createTournamentBody } from "@/lib/api-schemas";
+import type { TournamentConfigInput } from "@/lib/tournament-config";
 import type { Db, Tx } from "../db";
 import { ServiceError } from "../errors";
 import { toTournamentRecord, type TournamentRecord } from "../repositories/tournament-repository";
 import { generateAdminToken, hashToken, randomSuffix, tokenMatchesHash } from "../security";
-
-export const createTournamentSchema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(100),
-  sport: z.string().trim().min(1, "Sport is required").max(50),
-  config: tournamentConfigSchema,
-});
 
 export type CreateTournamentInput = {
   name: string;
@@ -36,7 +30,7 @@ export async function createTournament(
   db: Db,
   input: CreateTournamentInput,
 ): Promise<CreatedTournament> {
-  const parsed = createTournamentSchema.safeParse(input);
+  const parsed = createTournamentBody.safeParse(input);
   if (!parsed.success) {
     throw new ServiceError("VALIDATION", "Invalid tournament", parsed.error.flatten());
   }

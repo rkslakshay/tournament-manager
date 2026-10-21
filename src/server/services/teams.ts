@@ -1,12 +1,10 @@
-import { z } from "zod";
 import type { Team } from "@/engine/types";
+import { teamName } from "@/lib/api-schemas";
 import { MAX_TEAMS } from "@/lib/tournament-config";
 import type { Db, Tx } from "../db";
 import { ServiceError } from "../errors";
 import { assertStatus, TEAM_EDITABLE } from "../lifecycle";
 import { toTeam, toTournamentRecord } from "../repositories/tournament-repository";
-
-export const teamNameSchema = z.string().trim().min(1, "Team name is required").max(60);
 
 const STARTED_MESSAGE =
   "Teams cannot change after the tournament has started. Record a forfeit instead.";
@@ -21,7 +19,7 @@ export async function addTeams(
   tournamentId: string,
   names: readonly string[],
 ): Promise<Team[]> {
-  const cleaned = names.map((n) => teamNameSchema.safeParse(n));
+  const cleaned = names.map((n) => teamName.safeParse(n));
   const invalid = cleaned.findIndex((r) => !r.success);
   if (invalid !== -1) throw new ServiceError("VALIDATION", `Team name #${invalid + 1} is invalid`);
   const newNames = cleaned.map((r) => r.data as string);

@@ -11,6 +11,19 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 10:50: Task 3.1: zod schemas and error format
+
+- `src/lib/api-schemas.ts` defines the request body schemas for every write endpoint: create tournament, add teams, reorder, result, schedule. It also defines the `ApiErrorBody` type. The schemas live in `lib/` so client forms validate with the same rules.
+- The services now reuse these schemas instead of keeping their own copies. Validation rules exist exactly once.
+- `src/server/api/http.ts`:
+  - `json`.
+  - `errorResponse`: ServiceError → its status plus `{ error: { code, message, details? } }`; ZodError → 400; anything else → generic 500 with the cause logged server-side only; `Retry-After` on 429.
+  - `parseBody`: malformed JSON and schema failures → 400 VALIDATION with zod's flattened details.
+  - `handle`: wraps a handler and converts thrown errors.
+  - `bearerToken`.
+- Tests: 8 new, 163 total.
+- Next task: 3.2 routes and admin auth.
+
 ## 2026-10-21 10:30: Gate 2: passed
 
 - All 155 tests pass, including the service integration tests against temporary SQLite databases. Lint and typecheck are clean.

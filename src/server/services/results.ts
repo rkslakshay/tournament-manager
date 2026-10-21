@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { resultBody, type ResultBody } from "@/lib/api-schemas";
 import { resolveGroupRankings } from "@/engine/group-knockout";
 import { isBye } from "@/engine/match";
 import { propagate } from "@/engine/propagation";
@@ -18,21 +18,7 @@ import {
   type TournamentAggregate,
 } from "../repositories/tournament-repository";
 
-const score = z.number().int().min(0).max(999);
-
-export const resultInputSchema = z.object({
-  homeScore: score,
-  awayScore: score,
-  /** Required to apply an edit that resets downstream matches (RESET_DOWNSTREAM policy). */
-  confirmReset: z.boolean().optional(),
-  /**
-   * The match `version` the client last saw. When given and stale, the write is refused with
-   * VERSION_CONFLICT instead of silently overwriting another organizer's change.
-   */
-  expectedVersion: z.number().int().min(0).optional(),
-});
-
-export type ResultInput = z.infer<typeof resultInputSchema>;
+export type ResultInput = ResultBody;
 
 export interface InvalidatedMatch {
   id: MatchId;
@@ -69,7 +55,7 @@ export async function recordResult(
   matchId: MatchId,
   input: ResultInput,
 ): Promise<ResultOutcome> {
-  const parsed = resultInputSchema.safeParse(input);
+  const parsed = resultBody.safeParse(input);
   if (!parsed.success)
     throw new ServiceError("VALIDATION", "Invalid score", parsed.error.flatten());
   const { homeScore, awayScore, confirmReset, expectedVersion } = parsed.data;

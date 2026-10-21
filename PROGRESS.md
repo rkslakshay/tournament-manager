@@ -11,6 +11,17 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 14:40: Task 4.4: Public page with standings and fixtures tabs
+
+- `/t/[slug]`: a server-rendered page (`force-dynamic`, metadata title from the tournament) that passes the view to the client `PublicTournament`. Unknown slugs give 404.
+- Header: sport, format, team count, name, status badge (Live / Upcoming / Completed), a Share button that copies the URL (read after hydration to avoid a mismatch), and a champion banner once decided.
+- Tabs (`src/components/ui/tabs.tsx`): WAI-ARIA tablist with arrow/Home/End keys and a roving tabindex. Standings shows only when there are league stages, and is then the default tab.
+- `StandingsTable`: P W D L F A GD Pts with `<abbr>` titles, sticky header and horizontal scroll on narrow screens. Qualification places are highlighted with a background, a left bar, a visible "Q" and screen-reader text, so meaning never relies on colour alone.
+- `FixturesList` and `MatchCard`: grouped by stage and round. Each card shows the score, winner in bold (plus screen-reader "winner"), TBD slots in muted italics with their source ("Winner of SF 1"), Live/FT/Bye/Not needed status as text, and kick-off time and venue when scheduled.
+- Before the start, the page lists the teams by seed with a note that fixtures will follow.
+- Verified in the browser on a groups + knockout tournament with partial results: both group tables render with derived standings and Q markers.
+- Next task: 4.5 bracket visualization.
+
 ## 2026-10-21 14:10: Task 4.3: Fixtures preview, start, result entry, edits with confirmation
 
 - Before the start, `StartPanel` previews fixtures in the browser with the same pure `planStages` the server uses: match and round counts per stage, round-one pairings, and a readable error when the settings cannot work (e.g. too few teams for the groups). Start asks for confirmation in a native `<dialog>` (`ConfirmDialog`), explaining that teams lock.

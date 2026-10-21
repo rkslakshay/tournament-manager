@@ -45,6 +45,14 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-22 05:45: Task 7.20: docs/STUDY_GUIDE.md
+
+- Ten things to explain unaided: circle method, seeding, propagation, double elimination and bye-losers, recursive head-to-head, Swiss backtracking, most-constrained scheduling, the single write path and edit policy, optimistic concurrency, and live updates end to end. Each gives the file to read, the test to run, and a one-line change that makes a named test fail.
+- **Every "break it" claim was verified by script:** each mutation was applied, the named test run, the expected failure confirmed, and the file restored with `git checkout`. 9 of 10 held as written.
+  - The concurrency one did not: removing the `WHERE version` condition does _not_ fail the tests on SQLite, because writes are serialized and the `expectedVersion` check catches the race.
+  - Item 9 was rewritten: the break now targets `assertCurrentVersion` (verified: both concurrency tests fail), and an explicit "then try" step explains why the update condition is defense in depth for PostgreSQL.
+- During the first verification run, a Windows console decoding error aborted the script with `round-robin.ts` still mutated. It was restored immediately (`git checkout`), the script fixed to decode output as UTF-8, and re-run cleanly. No mutated code was committed.
+
 ## 2026-10-22 05:40: Task 7.19: docs/RESUME.md
 
 - Three resume-bullet styles (concise, technical, impact-focused), a 30-second pitch, a timed 2-minute demo script, and a LinkedIn project paragraph.

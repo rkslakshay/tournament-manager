@@ -2,7 +2,7 @@ import type { PublicView } from "@/lib/public-view";
 import { roundsOf, stageTitle, type MatchInfo } from "@/lib/view-model";
 import { MatchCard } from "./match-card";
 
-/** All matches, grouped by stage and round. */
+/** All matches, grouped by stage and round. Headings never skip a level. */
 export function FixturesList({ view, index }: { view: PublicView; index: Map<string, MatchInfo> }) {
   if (view.stages.length === 0) {
     return (
@@ -11,24 +11,16 @@ export function FixturesList({ view, index }: { view: PublicView; index: Map<str
       </p>
     );
   }
+  const multiStage = view.stages.length > 1;
   return (
     <div className="space-y-8">
       {view.stages.map((stage) => (
-        <section key={stage.id} aria-labelledby={`fixtures-${stage.id}`}>
-          {view.stages.length > 1 && (
-            <h2 id={`fixtures-${stage.id}`} className="mb-3 text-lg font-bold">
-              {stageTitle(stage)}
-            </h2>
-          )}
+        <section key={stage.id} aria-label={stageTitle(stage)}>
+          {multiStage && <h2 className="mb-3 text-lg font-bold">{stageTitle(stage)}</h2>}
           <div className="space-y-5">
             {roundsOf(stage).map((round) => (
               <div key={round.key}>
-                <h3
-                  id={view.stages.length > 1 ? undefined : `fixtures-${stage.id}`}
-                  className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
-                >
-                  {round.title}
-                </h3>
+                <RoundHeading level={multiStage ? 3 : 2}>{round.title}</RoundHeading>
                 <ul className="grid gap-2 sm:grid-cols-2">
                   {round.matches.map((match) => (
                     <li key={match.id}>
@@ -42,5 +34,14 @@ export function FixturesList({ view, index }: { view: PublicView; index: Map<str
         </section>
       ))}
     </div>
+  );
+}
+
+function RoundHeading({ level, children }: { level: 2 | 3; children: string }) {
+  const Tag = level === 2 ? "h2" : "h3";
+  return (
+    <Tag className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+      {children}
+    </Tag>
   );
 }

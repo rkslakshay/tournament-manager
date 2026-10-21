@@ -11,6 +11,24 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 15:50: Task 4.6: Mobile polish, dark mode, accessibility pass, OG metadata
+
+- Mobile (checked at 375 px in the browser):
+  - Standings hide the F/A columns below `sm`, so P W D L GD Pts fit without scrolling. There is no page-level horizontal overflow.
+  - Admin result rows restack on phones (full team names, Save on its own line) and show each match's label, which distinguishes "3rd place" from "Final".
+  - Group tables go two-up only at `xl`. Tables no longer have a min-width that overflowed in two columns.
+- Dark mode follows the OS. Light mode was also checked in the browser.
+- Accessibility:
+  - A scripted audit of `/`, `/new`, a public page, the admin page and a bracket page found no unlabelled controls, no nameless buttons or links, exactly one h1, and `lang` set.
+  - It did find a heading jump (h1→h3) in the bracket and the single-stage fixtures list, and duplicate ids on round headings. Both fixed: bracket section titles are h2, round headings are h2 or h3 by depth, and sections use `aria-label`.
+  - Earlier work already provides: a skip link, a visible focus ring, labelled score inputs, keyboard tabs, native `<dialog>`, and text alongside every colour cue.
+- OG metadata:
+  - `generateMetadata` on `/t/[slug]` sets title, description, canonical, Open Graph and a Twitter `summary_large_image` card.
+  - `opengraph-image.tsx` renders a 1200×630 preview card (name, sport, format, team count, status) with the built-in `next/og`, so no new dependency.
+  - `metadataBase` comes from `NEXT_PUBLIC_SITE_URL`.
+- Added `src/app/not-found.tsx`.
+- Next: Gate 4 (Playwright walkthrough).
+
 ## 2026-10-21 15:10: Task 4.5: Bracket visualization
 
 - `src/lib/bracket-layout.ts` (pure, tested): `layoutBracket` places matches in one column per round.

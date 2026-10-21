@@ -8,39 +8,55 @@ interface Props {
   qualifyingPlaces: number;
 }
 
-const COLUMNS = [
+/** Columns marked `wide` are hidden on phones so points stay visible without scrolling. */
+const COLUMNS: ReadonlyArray<{
+  key: keyof StandingRow;
+  short: string;
+  long: string;
+  wide?: boolean;
+}> = [
   { key: "played", short: "P", long: "Played" },
   { key: "won", short: "W", long: "Won" },
   { key: "drawn", short: "D", long: "Drawn" },
   { key: "lost", short: "L", long: "Lost" },
-  { key: "goalsFor", short: "F", long: "Scored" },
-  { key: "goalsAgainst", short: "A", long: "Conceded" },
+  { key: "goalsFor", short: "F", long: "Scored", wide: true },
+  { key: "goalsAgainst", short: "A", long: "Conceded", wide: true },
   { key: "goalDifference", short: "GD", long: "Difference" },
-] as const;
+];
 
 /** League table with a sticky header; qualification places are marked by text and colour. */
 export function StandingsTable({ title, rows, teamName, qualifyingPlaces }: Props) {
   return (
     <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
-      <table className="w-full min-w-[34rem] text-sm">
+      <table className="w-full text-sm">
         <caption className="bg-slate-50 px-3 py-2 text-left font-semibold dark:bg-slate-900">
           {title}
         </caption>
         <thead className="sticky top-0 bg-white text-xs text-slate-500 dark:bg-slate-950 dark:text-slate-400">
           <tr className="border-b border-slate-200 dark:border-slate-800">
             <th scope="col" className="w-10 px-3 py-2 text-left">
-              <abbr title="Position">#</abbr>
+              <abbr title="Position" className="no-underline">
+                #
+              </abbr>
             </th>
             <th scope="col" className="px-3 py-2 text-left">
               Team
             </th>
             {COLUMNS.map((c) => (
-              <th key={c.key} scope="col" className="w-10 px-2 py-2 text-right">
-                <abbr title={c.long}>{c.short}</abbr>
+              <th
+                key={c.key}
+                scope="col"
+                className={`w-10 px-2 py-2 text-right ${c.wide ? "hidden sm:table-cell" : ""}`}
+              >
+                <abbr title={c.long} className="no-underline">
+                  {c.short}
+                </abbr>
               </th>
             ))}
             <th scope="col" className="w-12 px-3 py-2 text-right">
-              <abbr title="Points">Pts</abbr>
+              <abbr title="Points" className="no-underline">
+                Pts
+              </abbr>
             </th>
           </tr>
         </thead>
@@ -71,8 +87,13 @@ export function StandingsTable({ title, rows, teamName, qualifyingPlaces }: Prop
                   {qualifies && <span className="sr-only"> (qualifies)</span>}
                 </th>
                 {COLUMNS.map((c) => (
-                  <td key={c.key} className="px-2 py-2 text-right tabular-nums">
-                    {c.key === "goalDifference" && row[c.key] > 0 ? `+${row[c.key]}` : row[c.key]}
+                  <td
+                    key={c.key}
+                    className={`px-2 py-2 text-right tabular-nums ${c.wide ? "hidden sm:table-cell" : ""}`}
+                  >
+                    {c.key === "goalDifference" && row.goalDifference > 0
+                      ? `+${row.goalDifference}`
+                      : row[c.key]}
                   </td>
                 ))}
                 <td className="px-3 py-2 text-right font-bold tabular-nums">{row.points}</td>

@@ -24,7 +24,7 @@ export function PublicTournament({ initialView }: { initialView: PublicView }) {
       id: "standings",
       label: "Standings",
       content: (
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 xl:grid-cols-2">
           {leagueStages.map((stage) => (
             <StandingsTable
               key={stage.id}

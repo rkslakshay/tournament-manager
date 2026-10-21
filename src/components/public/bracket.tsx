@@ -33,7 +33,7 @@ export function Bracket({ view, index, stage }: Props) {
         if (matches.length === 0) return null;
         return (
           <section key={side ?? "main"} aria-label={side ? SECTION_TITLES[side] : "Bracket"}>
-            {side && <h3 className="mb-2 font-semibold">{SECTION_TITLES[side]}</h3>}
+            {side && <h2 className="mb-2 font-semibold">{SECTION_TITLES[side]}</h2>}
             <BracketSection view={view} index={index} matches={matches} />
           </section>
         );

@@ -204,9 +204,12 @@ function ResultRow({ view, index, info, stage, saving, onSave }: RowProps) {
     <li className="py-2">
       <form
         onSubmit={submit}
-        className="grid grid-cols-[1fr_auto_auto_auto_1fr_auto] items-center gap-2 text-sm"
+        className="grid grid-cols-[minmax(0,1fr)_auto_auto_auto_minmax(0,1fr)] items-center gap-x-2 gap-y-1 text-sm sm:grid-cols-[minmax(0,1fr)_auto_auto_auto_minmax(0,1fr)_auto]"
         aria-label={`${info.label}: ${homeName} vs ${awayName}`}
       >
+        <span className="col-span-full text-xs text-slate-500 dark:text-slate-400">
+          {info.label}
+        </span>
         <span
           className={`truncate text-right ${done && match.winnerTeamId === match.homeTeamId ? "font-bold" : ""}`}
         >
@@ -220,7 +223,7 @@ function ResultRow({ view, index, info, stage, saving, onSave }: RowProps) {
           max={999}
           value={home}
           onChange={(e) => setHome(e.target.value)}
-          className="h-9 w-14 rounded-md border border-slate-300 bg-white text-center tabular-nums dark:border-slate-700 dark:bg-slate-900"
+          className="h-9 w-12 rounded-md border border-slate-300 bg-white text-center tabular-nums dark:border-slate-700 dark:bg-slate-900"
         />
         <span aria-hidden>–</span>
         <input
@@ -231,14 +234,20 @@ function ResultRow({ view, index, info, stage, saving, onSave }: RowProps) {
           max={999}
           value={away}
           onChange={(e) => setAway(e.target.value)}
-          className="h-9 w-14 rounded-md border border-slate-300 bg-white text-center tabular-nums dark:border-slate-700 dark:bg-slate-900"
+          className="h-9 w-12 rounded-md border border-slate-300 bg-white text-center tabular-nums dark:border-slate-700 dark:bg-slate-900"
         />
         <span
           className={`truncate ${done && match.winnerTeamId === match.awayTeamId ? "font-bold" : ""}`}
         >
           {awayName}
         </span>
-        <Button type="submit" size="sm" variant={done ? "secondary" : "primary"} disabled={saving}>
+        <Button
+          type="submit"
+          size="sm"
+          variant={done ? "secondary" : "primary"}
+          disabled={saving}
+          className="col-span-full justify-self-end sm:col-span-1"
+        >
           {saving ? "Saving…" : done ? "Update" : "Save"}
         </Button>
         {error && (

@@ -11,6 +11,11 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 19:50: Task 6.5: docs/INTERVIEW_NOTES.md
+
+- Plain-language answers, each pointing at the backing code: architecture, byes (including double-elimination "ghost" byes), edited results (propagation, invalidation, policy, versions), derived standings and recursive head-to-head, live updates and how to scale them (Redis pub/sub, edge caching), the scheduler heuristic and why its tie-break exists, testing strategy, and next steps.
+- Next: Gate 6 (a fresh clone runs with the documented steps only).
+
 ## 2026-10-21 19:35: Task 6.4: README
 
 - Rewritten README sections: pitch, demo note, screenshot placeholders (table with target paths under `docs/screenshots/`), feature list, Mermaid architecture flowchart plus layer summary, getting started, full script table, API table (including the status and events routes), testing strategy, design decisions, "what I'd improve next", and project layout.

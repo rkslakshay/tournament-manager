@@ -11,6 +11,22 @@ Append newest entries at the top. Format:
 - Next task
 ```
 
+## 2026-10-21 09:00: Task 2.3: Team management with lifecycle validation
+
+- `src/server/lifecycle.ts` holds the tournament state machine:
+  - DRAFT→REGISTRATION→IN_PROGRESS→COMPLETED, and any non-archived state can go to ARCHIVED.
+  - COMPLETED→IN_PROGRESS is allowed so an organizer can edit a result after the end.
+  - `assertTransition` and `assertStatus` throw INVALID_STATE.
+- `src/server/services/teams.ts`:
+  - `addTeams` (batch, trimmed, next free seeds, max 128, case- and whitespace-insensitive duplicates rejected within the batch and against existing teams with DUPLICATE and the offending names).
+  - `removeTeam` (closes the seed gap).
+  - `reorderTeams` (must be a full permutation).
+  - `listTeams`.
+  - Every write runs in a transaction, and changes are refused once the tournament has started. The message suggests a forfeit instead.
+- Assumption: forfeits are not a roadmap task. They are mentioned in DESIGN.md's edge cases, and recording a walkover result covers them for now (logged in BLOCKERS.md as a product decision).
+- Tests: 8 new, 129 total. They include the full transition table and illegal moves.
+- Next task: 2.4 startTournament.
+
 ## 2026-10-21 08:45: Task 2.2: createTournament
 
 - `createTournament(db, { name, sport, config })`:
